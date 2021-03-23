@@ -6,7 +6,6 @@ theme:
 markdown_extensions:
     - admonition
 nav:
-    - Home: 'README.md'
     - HowTo:
         - 'Kubernetes': 'howto/kubernetes/kubernetes-help.md'
         - Az:  
