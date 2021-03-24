@@ -236,6 +236,10 @@ __Get cluster current cluster resources__
 ```
 kubectl get nodes --no-headers | awk '\''{print $1}'\'' | xargs -I {} sh -c '\''echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '\'''
 ```
+__Get node current using resources:__
+```
+kubectl describe node <instance_node> | sed -r '/Allocated resources:|Addresses:/!d;s//&\n/;s/.*\n//;:a;/Events:|Capacity:/bb;$!{n;ba};:b;s//\n&/;P;D' | sed 's/  //g'
+```
 ```
 kubectl api-resources --namespaced=true      # Every resources with namespace
 kubectl api-resources --namespaced=false     # Every resources withouth namespace
