@@ -114,6 +114,10 @@ __kubernetes check ServicePrincipalId:__
 ```
 az aks list --resource-group <Resource_Group> --query="[0].servicePrincipalProfile.clientId"
 ```
+__get service principal end Date:__
+```
+az ad sp credential list --id <clientid> --query "[].endDate" -o tsv
+```
 
 
 __add extensions to azure cli and configure node pools of aks cluster:__
