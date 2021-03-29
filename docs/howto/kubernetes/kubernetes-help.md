@@ -269,6 +269,32 @@ __Execute bash inside a pod:__
 ```
 kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ```
+__Get pods running on specific node:__
+```
+kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=aks-usernpool-10999373(..)
+```
+__Delete pod that is stuck on upgrading:__
+```
+kubectl delete pods pod_name --grace-period=0 –force --namespace <NAMESPACE>
+```
+__List pods classified by pod restarts__
+```
+kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
+```
+__Get label version of every pod with label app=cassandra:__
+```
+kubectl get pods --selector=app=cassandra -o \
+  jsonpath='{.items[*].metadata.labels.version}'
+```
+__Get every pod being executed on default namespace:__
+```
+kubectl get pods --field-selector=status.phase=Running
+```
+__Check the controlled description of the pod:__
+```
+kubectl get pods --no-headers=true | awk '{print $1}' | xargs -l bash -c 'kubectl describe pod $0 | gre
+```
+
 __Get logs:__
 ```
 kubectl logs my-pod                                 # Get pod logs
@@ -315,10 +341,6 @@ curl localhost:8080 # to stop the port forward use control + c on session 1
 
 ```
 
-__Delete pod that is stuck on upgrading:__
-```
-kubectl delete pods pod_name --grace-period=0 –force --namespace <NAMESPACE>
-```
 __Docker get the size of the overlay mounts used:__
 ```
 sudo docker inspect $(docker ps -qa) |  jq -r 'map([.Name, .GraphDriver.Data.UpperDir]) | .[] | "\(.[0])\t\(.[1])"' | awk -F '/diff' '{print $1}' | awk '{printf $1" "}''{system("sudo du -sh " $2)}' | sort -rhk2
@@ -329,28 +351,10 @@ __List services classified by name:__
 kubectl get services --sort-by=.metadata.name
 ```
 
-__List pods classified by pod restarts__
-```
-kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
-```
 __List PersistentVolumes classified by capacity__
 ```
 kubectl get pv --sort-by=.spec.capacity.storage
 ```
-__Get label version of every pod with label app=cassandra:__
-```
-kubectl get pods --selector=app=cassandra -o \
-  jsonpath='{.items[*].metadata.labels.version}'
-```
-__Get every pod being executed on default namespace:__
-```
-kubectl get pods --field-selector=status.phase=Running
-```
-__Check the controlled description of the pod:__
-```
-kubectl get pods --no-headers=true | awk '{print $1}' | xargs -l bash -c 'kubectl describe pod $0 | gre
-```
-
 
 ## Secrets:
 
@@ -741,8 +745,6 @@ ce4ff40a5456        nicolaka/netshoot:latest   "iperf -s -p 9999"       5 minute
 🐳  → docker run -it --net container:perf-test-a.1.bil2mo8inj3r9nyrss1g15qav nicolaka/netshoot iftop -i eth0
 
 ```
-
-![iftop.png](img/iftop.png)
 
 ## drill
 
