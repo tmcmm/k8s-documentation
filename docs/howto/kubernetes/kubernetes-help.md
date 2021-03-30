@@ -597,6 +597,24 @@ kubectl node-shell <node> -- sh -c 'cat /tmp/passwd; rm -f /tmp/passwd'
 ```
 
 ## Network troubleshooting
+__from pod trying to reach the service:__
+```
+curl -v https://servicefqdn.com:443
+tcpdump -ni eth0 -w ethcap-%H.pcap -e -C 200 -G 3600 -K OR tcpdump -s 0 -vvv -w /path/nameofthecapture.cap
+scp -i id_rsa azureuser@10.240.0.4:/home/azureuser/ethcap-17.pcap /
+kubectl cp aks-ssh:/ethcap-17.pcap /home/user/ethcap-17.pcap
+```
+
+To get network traces from the Pod, you can do the following:<br>
+1.	SSH to the node
+2.	Run ‘docker ps|grep <pod name>’ and remember the container ID of your application
+3.	Run ‘docker inspect <container ID>|grep Pid’
+4.	Run ‘nsenter -t <Pid> -n ip addr’ and remember the ifindex number which is ‘if<ifindex>’
+5.	Run ‘ip addr|grep ^<ifindex>’ to get the network interface
+6.	Run ‘tcpdump -i <network interface> -w /tmp/test.cap’ and start to reproduce your issue
+7.	Once done, you could run ‘ctrl + c’ to abort.
+
+
 If you want to spin up a throw away container for debugging.<br>
 ```
 kubectl run tmp-shell --rm -i --tty --image nicolaka/netshoot  -- /bin/bash
