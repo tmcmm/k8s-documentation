@@ -252,7 +252,10 @@ __Get ExternalIPs of every node:__
 ```
 kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="ExternalIP")].address}'
 ```
-
+__Check the status of the node images:__
+```
+kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.kubernetes\.azure\.com\/node-image-version}{"\n"}{end}'
+```
 ## Namespaces and Pods
 
 ```
