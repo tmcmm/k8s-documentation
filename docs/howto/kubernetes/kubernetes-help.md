@@ -256,6 +256,10 @@ __Check the status of the node images:__
 ```
 kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.kubernetes\.azure\.com\/node-image-version}{"\n"}{end}'
 ```
+__Chek where nodes are deployed according to the Availability Zone:__
+```
+kubectl get nodes -o custom-columns=NAME:'{.metadata.name}',REGION:'{.metadata.labels.topology\.kubernetes\.io/region}',ZONE:'{metadata.labels.topology\.kubernetes\.io/zone}'
+```
 ## Namespaces and Pods
 
 ```
