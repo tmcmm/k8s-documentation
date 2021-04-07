@@ -118,6 +118,36 @@ __get service principal end Date:__
 ```
 az ad sp credential list --id <clientid> --query "[].endDate" -o tsv
 ```
+__create a new service principal__:
+```
+az ad sp create-for-rbac \
+    --name $AKS_SP_NAME \
+    --skip-assignment >> sp-credentials-deploy.yaml 2>&1
+```
+__retrieve Service principal APPID and Client Secret:__
+```
+AKS_SP_APP_ID=$(az ad app list --display-name $AKS_SP_NAME --query "[].appId" -o tsv)
+AKS_SP_SECRET=$(az ad sp credential reset --name $AKS_SP_NAME --query "password" -o tsv)
+```
+__add SP to a new cluster:__
+```
+az aks create --resource-group $RG_NAME --name $CLUSTER_NAME \
+    --service-principal $AKS_SP_APP_ID \
+    --client-secret $AKS_SP_SECRET \
+    --node-count $NODE_COUNT \
+    --node-vm-size Standard_DS2_v2 \
+ (....)
+```
+__add SP to a existing cluster:__
+```
+az aks update-credentials \
+--resource-group myResourceGroup \
+--name myAKSCluster \  
+--reset-service-principal \  
+--service-principal $AKS_SP_APP_ID \  
+--client-secret $AKS_SP_SECRET
+```
+
 
 
 __add extensions to azure cli and configure node pools of aks cluster:__
