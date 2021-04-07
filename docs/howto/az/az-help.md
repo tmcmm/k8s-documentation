@@ -72,6 +72,18 @@ __after rotating certificates:__
 ```
 az aks get-credentials -g akslab -n akstmcmm-14227 --overwrite-existing
 ```
+__create cluster with uptime sla:__
+```
+az aks create --resource-group myResourceGroup --name myAKSCluster --uptime-sla (...)
+```
+__update cluster to uptime sla:__
+```
+ az aks update --resource-group myResourceGroup --name myAKSCluster --uptime-sla
+```
+__remove uptime sla:__
+```
+ az aks update --resource-group myResourceGroup --name myAKSCluster --no-uptime-sla
+```
 
 ### Launch a command directly from any node instance:
 __list available vmss:__
