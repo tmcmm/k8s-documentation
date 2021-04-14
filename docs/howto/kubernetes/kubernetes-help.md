@@ -601,8 +601,8 @@ kubectl node-shell <node> -- sh -c 'cat /tmp/passwd; rm -f /tmp/passwd'
 ```
 
 ## Network troubleshooting
-__DNS TROUBLESHOOTING:__
-from cluster:<br>
+__DNS TROUBLESHOOTING:__<br<
+__From cluster:__<br>
 ```
 kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
 kubectl logs --namespace=kube-system -l k8s-app=kube-dns
@@ -635,7 +635,7 @@ kubectl cp id_rsa $(kubectl get pod -l run=aks-ssh -o jsonpath='{.items[0].metad
 chmod 0400 id_rsa
 ssh -i id_rsa azureuser@10.240.0.4
 ```
-From node:<br>
+__From node:__<br>
 ```
 Install these tools:
 apt-get update && apt install dnsutils -y 
@@ -656,11 +656,11 @@ curl -vso /dev/null https://fqdn-ip
 curl -v telnet://fqdn:443
 curl -v telnet://fqdnip:443
 ```
-if no access to the node (using azcli): <br>
+__if no access to the node (using azcli):__<br>
 ```
 az vmss run-command invoke -g MC_ACS-RG-(..) -n aks-(..)-vmss --command-id RunShellScript --instance-id 0 --scripts "nc -vz fqdn 443" -o json
 ```
-From pod:<br>
+__From pod:__<br>
 ```
 kubectl run tmp-shell --restart=Never -i --tty --image nicolaka/netshoot -- /bin/bash
 # Checked for the /etc/resolv.conf inside the pod to see if it was matching the kube-dns upstream server
