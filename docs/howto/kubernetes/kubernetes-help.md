@@ -601,6 +601,77 @@ kubectl node-shell <node> -- sh -c 'cat /tmp/passwd; rm -f /tmp/passwd'
 ```
 
 ## Network troubleshooting
+__DNS TROUBLESHOOTING:__
+from cluster:<br>
+```
+kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
+kubectl logs --namespace=kube-system -l k8s-app=kube-dns
+kubectl get configmaps --namespace=kube-system coredns-custom -o yaml
+```
+We need to log on one of the cluster nodes:<br>
+If using windows bastion:<br>
+Check dns from the windows bastion:<br>
+```
+tnc fqdn -port 443
+```
+```
+ssh-keygen -b 4096
+Generating public/private rsa key pair.
+Enter file in which to save the key (C:\Users\$USER/.ssh/id_rsa):
+
+CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group myResourceGroup --name myAKSCluster --query nodeResourceGroup -o tsv)
+SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query '[0].name' -o tsv)
+az vmss extension set  \
+    --resource-group $CLUSTER_RESOURCE_GROUP \
+    --vmss-name $SCALE_SET_NAME \
+    --name VMAccessForLinux \
+    --publisher Microsoft.OSTCExtensions \
+    --version 1.4 \
+    --protected-settings "{\""username\"":\""azureuser\"", \""ssh_key\"":\""$(cat ~/.ssh/id_rsa.pub)\""}"
+az vmss update-instances --instance-ids '*' --resource-group  MC_rg-aks-(...)_westeurope  --name aks-(...)-vmss
+kubectl run -it --rm aks-ssh --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
+apt-get update && apt-get install openssh-client -y
+kubectl cp id_rsa $(kubectl get pod -l run=aks-ssh -o jsonpath='{.items[0].metadata.name}'):/id_rsa
+chmod 0400 id_rsa
+ssh -i id_rsa azureuser@10.240.0.4
+```
+From node:<br>
+```
+Install these tools:
+apt-get update && apt install dnsutils -y 
+apt-get update && apt-get install iputils-ping -y 
+apt-get update && apt-get install curl -y
+The command below verifies that a proper record is returned by the DNS server(s) in /etc/resolv.conf: nslookup google.com
+The command below verifies that we can reach out to the internet and pull the website (verifies network connectivity outside of Azure): curl google.com
+If the above curl doesn’t work, then we should use windows 1 to ping google.com  to obtain the IP. Use the IP with the CURL command to see if it was a DNS lookup issue. (ping google.com -4 to get the IPv4 result) curl 172.217.14.238
+Testing network connectivity within the cluster from the node or pod using windows 1 run: kubectl get pods -o wide
+Using an IP associated with a pod that’s not our test pod, try to ping it within windows 2: ping < pod IP >
+If not already done, try to ping a pod that exists on a different node than the node that your testing pod exists on too.
+Testing network connectivity from a POD destined outside of the cluster using windows 2: ping google.com
+The connection will not return successful pings but you will be able to observe the IP it attempt to reach.
+
+nc -vz fqdn 443
+curl -vso /dev/null https://fqdn
+curl -vso /dev/null https://fqdn-ip
+curl -v telnet://fqdn:443
+curl -v telnet://fqdnip:443
+```
+if no access to the node (using azcli): <br>
+```
+az vmss run-command invoke -g MC_ACS-RG-(..) -n aks-(..)-vmss --command-id RunShellScript --instance-id 0 --scripts "nc -vz fqdn 443" -o json
+```
+From pod:<br>
+```
+kubectl run tmp-shell --restart=Never -i --tty --image nicolaka/netshoot -- /bin/bash
+# Checked for the /etc/resolv.conf inside the pod to see if it was matching the kube-dns upstream server
+kubectl get svc -n kube-system
+service/kube-dns                         ClusterIP   10.245.64.10    <none>        53/UDP,53/TCP   23d       k8s-app=kube-dns
+cat /etc/resolv.conf
+nameserver 10.245.64.10 search default.svc.cluster.local svc.cluster.local cluster.local
+curl -v telnet://fqdn:443
+tcpdump -s 0 -vvv -w podnode.cap
+kubectl cp tmp-shell:/podnode.pcap .
+```
 __from pod trying to reach the service:__
 ```
 curl -v https://servicefqdn.com:443
