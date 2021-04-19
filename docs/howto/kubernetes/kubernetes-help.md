@@ -472,9 +472,17 @@ kubectl get svc -A # list services again
 NODEPORT=$(kubectl get svc web-deploy1-svc | grep 80: | awk '{print $5}' | cut -d":" -f2 | sed 's|/TCP||') # try curl to one of the nodes using the high number port that is showing next to 80
 # curl the nodeport
 curl workernode2:${NODEPORT} # now we can reach our app from outside the cluster using the nodeport
-
 ```
 
+__Get all Kubernetes LB external IPs:__
+```
+kubectl get services --all-namespaces -o json | jq -r '.items[] | { name: .metadata.name, ns: .metadata.namespace, ip: .status.loadBalancer?|.ingress[]?|.ip  }'
+{
+  "name": "azureml-fe",
+  "ns": "default",
+  "ip": "20.56.xxx.xxx"
+}
+```
 ## Networking:
 
 __Service port-forward:__
