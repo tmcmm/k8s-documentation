@@ -34,7 +34,7 @@ __upgrade AKS cluster (only control plane):__
 ```
 az aks upgrade --kubernetes-version <1.xx.xx> -n <cluster name> -g <rgname> --control-plane-only
 ```
-__upgrade the cluster:__ ![https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Upgrade The cluster Azure"]
+__upgrade the cluster:__[Azure AKS upgrade Homepage](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Azure AKS Upgrade")<br>
 ```
 az aks upgrade --resource-group myResourceGroup --name myAKSCluster --kubernetes-version KUBERNETES_VERSION
 ```
