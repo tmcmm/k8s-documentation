@@ -16,7 +16,7 @@ __get cluster credentials:__
 truncate -s0 ~/.kube/config
 az aks get-credentials --resource-group <Resource_Group> --name <Cluster_name> --overwrite-existing -f ~/.kube/config
 ```
-__get available upgrades:__
+__get available upgrades:__<br>
 supported versions:<br>
 ```
 az aks get-versions --location <location> -o table
@@ -33,6 +33,10 @@ az aks nodepool upgrade -n <nodepoolname> --cluster-name <cluster name> -g <rgna
 __upgrade AKS cluster (only control plane):__
 ```
 az aks upgrade --kubernetes-version <1.xx.xx> -n <cluster name> -g <rgname> --control-plane-only
+```
+__upgrade the cluster:__ ![https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Upgrade The cluster Azure"]
+```
+az aks upgrade --resource-group myResourceGroup --name myAKSCluster --kubernetes-version KUBERNETES_VERSION
 ```
 __check the version of the cluster by running the following command:__
 ```
