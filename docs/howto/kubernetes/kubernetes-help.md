@@ -280,6 +280,10 @@ __Get pods running on specific node:__
 ```
 kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=aks-usernpool-10999373(..)
 ```
+__Get pods requests and limits:__
+```
+kubectl get pods -o custom-columns=NAME:.metadata.name,LIMIT-CPU:.spec.containers[].resources.limits.cpu,REQUEST-CPU:.spec.containers[].resources.requests.cpu,LIMIT-MEM:.spec.containers[].resources.limits.memory,REQUEST-MEM:.spec.containers[].resources.requests.mem
+```
 __Delete pod that is stuck on upgrading:__
 ```
 kubectl delete pods pod_name --grace-period=0 –force --namespace <NAMESPACE>
