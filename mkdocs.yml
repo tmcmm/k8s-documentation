@@ -1,4 +1,4 @@
-site_name: Docs page
+site_name: Tmcmm Personal Documentation
 site_dir: public
 #repo_url: http://localhost:8080/k8s-doc
 theme:
@@ -6,6 +6,7 @@ theme:
 markdown_extensions:
     - admonition
 nav:
+    - Home: README.md
     - HowTo:
         - 'Kubernetes': 'howto/kubernetes/kubernetes-help.md'
         - Az:  
