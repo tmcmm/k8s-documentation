@@ -74,7 +74,7 @@ az aks rotate-certs -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME
 
 __after rotating certificates:__
 ```
-az aks get-credentials -g akslab -n akstmcmm-14227 --overwrite-existing
+az aks get-credentials -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME --overwrite-existing
 ```
 __create cluster with uptime sla:__
 ```
@@ -138,6 +138,14 @@ __get service principal end Date:__
 ```
 az ad sp credential list --id <clientid> --query "[].endDate" -o tsv
 ```
+__Retrieve Sp secret password:__
+```
+az vmss run-command invoke --command-id RunShellScript --resource-group <nodeRG> --name <vmssName> --instance-id <0,1,2...> --scripts "hostname && date && cat /etc/kubernetes/azure.json" | grep aadClientSecret
+```
+__Now that we have the SP appID and password we can reset the SP password expiration date with Azure cli, the command is as follows:__<br>
+```
+az ad sp credential reset -n <appIDofSP> -p <passwordofSP> --years <NunmberOfYears>
+```
 __create a new service principal__:
 ```
 az ad sp create-for-rbac \
@@ -167,7 +175,14 @@ az aks update-credentials \
 --service-principal $AKS_SP_APP_ID \  
 --client-secret $AKS_SP_SECRET
 ```
-
+### 3rd option:
+• Using the Azure portal navigate to Azure AD, then "App registrations" and create a new Service Principal.
+• Then create a password for this new SP in the "Certificates and secrets" section
+• Once you hit "Save" the password will be shown just once, have the customer save it somewhere.
+__after run from az-cli:__
+```
+az aks update-credentials -g <clusterResourceGroup> -n <clusterName> --reset-service-principal --service-principal <appIDofNewSP> --client-secret <PasswordofNewSP>
+```
 
 
 __add extensions to azure cli and configure node pools of aks cluster:__
