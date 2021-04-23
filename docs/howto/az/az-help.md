@@ -128,7 +128,7 @@ az group delete --name
 ```
 __List all your sp created under your susbcription:__
 ```
-az ad sp list --show-mine --query "[].{id:appId, tenant:appOwnerTenantId, name:displayName}
+az ad sp list --show-mine --query "[].{id:appId, tenant:appOwnerTenantId, name:displayName}"
 ```
 __kubernetes check ServicePrincipalId:__
 ```
@@ -156,9 +156,10 @@ az ad sp create-for-rbac \
     --name $AKS_SP_NAME \
     --skip-assignment >> sp-credentials-deploy.yaml 2>&1
 ```
-__retrieve Service principal APPID and Client Secret:__
+__Reset existing Service principal APPID and Client Secret:__
 ```
-AKS_SP_APP_ID=$(az ad app list --display-name $AKS_SP_NAME --query "[].appId" -o tsv)
+AKS_SP_NAME=$(az ad sp list --show-mine --query "[].{id:appId, tenant:appOwnerTenantId, name:displayName}"
+AKS_SP_APP_ID=$(az ad app list --display-name "$AKS_SP_NAME" --query "[].appId" -o tsv)
 AKS_SP_SECRET=$(az ad sp credential reset --name $AKS_SP_NAME --query "password" -o tsv)
 ```
 __add SP to a new cluster:__
