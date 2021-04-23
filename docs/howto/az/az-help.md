@@ -142,6 +142,10 @@ __Retrieve Sp secret password:__
 ```
 az vmss run-command invoke --command-id RunShellScript --resource-group <nodeRG> --name <vmssName> --instance-id <0,1,2...> --scripts "hostname && date && cat /etc/kubernetes/azure.json" | grep aadClientSecret
 ```
+__if AvailabilitySet:__
+```
+az vm run-command invoke -g <nodeResourceGroup> -n <VM Name> --scripts "hostname && date && cat /etc/kubernetes/azure.json" --command-id RunShellScript | grep aadClientSecret
+```
 __Now that we have the SP appID and password we can reset the SP password expiration date with Azure cli, the command is as follows:__<br>
 ```
 az ad sp credential reset -n <appIDofSP> -p <passwordofSP> --years <NunmberOfYears>
