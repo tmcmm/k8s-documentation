@@ -284,6 +284,10 @@ __Get pods requests and limits:__
 ```
 kubectl get pods -o custom-columns=NAME:.metadata.name,LIMIT-CPU:.spec.containers[].resources.limits.cpu,REQUEST-CPU:.spec.containers[].resources.requests.cpu,LIMIT-MEM:.spec.containers[].resources.limits.memory,REQUEST-MEM:.spec.containers[].resources.requests.mem
 ```
+or:
+```
+kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{"CPU_Limit:"}{.spec.containers[].resources.limits.cpu}{"\t"}{"Memory_Limit:"}{.spec.containers[].resources.limits.memory}{"\t"}{"CPU_Request:"}{.spec.containers[].resources.requests.cpu}{"\t"}{"Memory_Request:"}{.spec.containers[].resources.requests.memory}{"\n"}{"\n"}{end}'
+```
 __Delete pod that is stuck on upgrading:__
 ```
 kubectl delete pods pod_name --grace-period=0 –force --namespace <NAMESPACE>
