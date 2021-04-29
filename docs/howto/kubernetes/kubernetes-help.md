@@ -280,6 +280,10 @@ __Get pods running on specific node:__
 ```
 kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=aks-usernpool-10999373(..)
 ```
+__Run pod on a specif node:__
+```
+kubectl run tmp-shell --rm -i --tty --overrides='{"spec": { "template": { "spec": { "nodeSelector": { "kubernetes.io/hostname": "aks-nodepool1-(.....)-vmss"}}}}}' --image nicolaka/netshoot -- /bin/bash
+```
 __Get pods requests and limits:__
 ```
 kubectl get pods -o custom-columns=NAME:.metadata.name,LIMIT-CPU:.spec.containers[].resources.limits.cpu,REQUEST-CPU:.spec.containers[].resources.requests.cpu,LIMIT-MEM:.spec.containers[].resources.limits.memory,REQUEST-MEM:.spec.containers[].resources.requests.mem
