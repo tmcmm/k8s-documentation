@@ -1,4 +1,4 @@
-site_name: Tmcmm Personal Documentation
+site_name: Tiago Mendes Personal Documentation
 site_dir: public
 #repo_url: http://localhost:8080/k8s-doc
 theme:
@@ -8,6 +8,7 @@ markdown_extensions:
 nav:
     - Home: 'README.md'
     - HowTo:
-        - 'Kubernetes': 'howto/kubernetes/kubernetes-help.md'
+        - Kubernetes:
+            - 'Kubernetes Commands': 'howto/kubernetes/kubernetes-help.md'
         - Az:  
             - 'Az Commands': 'howto/az/az-help.md'

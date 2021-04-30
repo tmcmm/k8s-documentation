@@ -175,42 +175,12 @@ kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-aut
 -----BEGIN CERTIFICATE-----
 MIIFMjCCAxqgAwIBAgIQSrgQdZFOuaRNd0Q95JmU2TANBgkqhkiG9w0BAQsFADAZ
 MRcwFQYDVQQDEw5HcnVwb0NHRFJvb3RDQTAeFw0wOTA0MDgxNDU0MjBaFw0zNjA1
-MDQxNDI4MThaMBkxFzAVBgNVBAMTDkdydXBvQ0dEUm9vdENBMIICIjANBgkqhkiG
-9w0BAQEFAAOCAg8AMIICCgKCAgEAqIsmvDwTzb3rlb08G1xgaa3644z29LKQqSkJ
-euPzr0xZ4+tUkIGupIYjxL8mWL8nfNsbihltnOnA1qzhZXIs8+vdqPdsShIQOwrF
-GXsZwlvlRAoIkyoZpQxPjbrz3UgcKE5Y1aqBAQCsVcKjsxuCakISoR/daXV2QJX/
-V7hT4sF9K8qnC/exp0uWcnuorQjKtqlfr9HQMC9HnihpGocV1lo4OLXdqbG/Rux/
-BllnYqDdj8YZQKD2hBsJUZP2xUTo9F5NUY/Mta9ubjHuphxPUYVAnnLpG4xAgvRX
-IEH4f/GoJ/FEXN8ozFVeRmnJ/XYtL7vJ0ot5rsVVrF+7mAIT7OC04uMn6exZMI13
-143fwu/rHKjNhxy/t2c5TumuDktfHeqSvfcwDBU7znaqVLhSz1k488z733b/O2yn
-1asA9bV/bDGUwhTTZJhZQOXHlN9tyfjRuLZP1Jljq3wJqpw+YcbxBfpuYIRJPWCd
-1owYgtgQBi0zqJ7mMeFsvpqSRNasBchUm2wBBDYC2QW9KXzKv5fjAGR3ea5IcvaU
-DUio2Vy23QGh4ffqwGQqscGu6fbEUZHtdI2Ue5VREuvN3a7NtM0KYrVFFZOcmRHY
-oUlbecUN52jt/0r08xH2HNaBZLsV6LxrpY6qIpRfOr61lOA1D6YmsSgdmHHCzFMh
-Gn9FOGsCAwEAAaN2MHQwCwYDVR0PBAQDAgGGMA8GA1UdEwEB/wQFMAMBAf8wHQYD
-VR0OBBYEFCSpjA3GccA8ofrmPVEMzSmxvuG2MBAGCSsGAQQBgjcVAQQDAgEBMCMG
-CSsGAQQBgjcVAgQWBBR5zLUxC40YPF0eNerKsLLfqQhOxTANBgkqhkiG9w0BAQsF
-AAOCAgEAcREQUCgl5bm6dz1sy+4BW6XxTCB62m2DXH+EAL/PxV+KkZyKP6xZJVOe
-YZu6CZnn2jtUTd2y3PBLRpmll5O5de4+4yceOWB92pcvLv/psv7BAvu0aaDfdlR6
-HTuELcNx4tuy2QW5TamsiCweFPVDQabvSpL6FfP0lhbnTbOXyiS20Ci9TxC6QBok
-enjXR5Ic/O8dLrAXk4nY1BcbCOMiOVzSj4imYwlqCe1Aa6gi8jCIbDTPKVRlH4t9
-D8U5AsqnRPEGVbNk2Ib8rdior5t8ucSGHIca/spjqsFle3g3sYydQN9mPrCgFsIt
-5Q5KB5S61KEgLrgL3OwaSAquJ7O2ooFkf/d4dE/1mAAswMNXN6YMCaZf7Sn+9khN
-Ua/yPNUvz5m0bAH1HrWe+ATuERjZ4PtrCUOG+v84ne42r9crXrFFMgCFu0QUe1e7
-GwdflULUJe7k6UWE0N9w1NiZfBWnJuupPm5nD9ucVJc8cTqNOnT52L/cC2Vndlwj
-jrkkBU029tYFvBm2GIs9gxwsxkcDkwhwk5NBNTezubXzHQNSxSpw66NO76TFf+VK
-cYhBXlLEfEuu7EXTw7JCK0GbTwgx5cPDrhyAjRNrrPWAaDk2crOu+wIiVNb1IDGn
-K033JhWeSjzjdl1m9Ev4kCNzE3F6L+Nw1ib83cXgVanVtwBJVIY=
+(...)
 -----END CERTIFICATE-----
 ```
 __Get cluster certificates validity:__
 ```
 kubectl config view --raw -o jsonpath="{.clusters[?(@.name == 'myAKSCluster')].cluster.certificate-authority-data}" | base64 -d | openssl x509 -text | grep -A2 Validity
-```
-__Rotate Certificates:__
-[azure-certificates-aks](https://docs.microsoft.com/pt-pt/azure/aks/certificate-rotation "Azure Certicates AKS")
-```
-az aks rotate-certs -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME
 ```
 
 __Set a context with a different namespace:__
@@ -223,6 +193,7 @@ kubectl api-resources # list the available short names for the k8s objects
 
 ```
 
+## Cluster Resources <br>
 __Check Resources:__
 ```
 kubectl get services                         
@@ -232,9 +203,17 @@ kubectl get deployment my-dep
 kubectl get pods                            
 kubectl get pod my-pod -o yaml             
 ```
-__Get cluster current cluster resources__
+__Get cluster current cluster resources as bash alias__
 ```
-kubectl get nodes --no-headers | awk '\''{print $1}'\'' | xargs -I {} sh -c '\''echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '\'''
+alias util='kubectl get nodes --no-headers | awk '\''{print $1}'\'' | xargs -I {} sh -c '\''echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '\'''
+# Get CPU request total (we x20 because because each m3.large has 2 vcpus (2000m) )
+alias cpualloc='util | grep % | awk '\''{print $1}'\'' | awk '\''{ sum += $1 } END { if (NR > 0) { print sum/(NR*20), "%\n" } }'\'''
+# # Get mem request total (we x75 because because each m3.large has 7.5G ram )
+alias memalloc='util | grep % | awk '\''{print $5}'\'' | awk '\''{ sum += $1 } END { if (NR > 0) { print sum/(NR*75), "%\n" } }'\'''
+```
+__Get Cluster used resources:__
+```
+kubectl get nodes --no-headers | awk '{print $1}' | xargs -I {} ; kubectl describe node  | sed -r '/Allocated resources:|Addresses:/!d;s//&\n/;s/.*\n//;:a;/Events:|Capacity:/bb;$!{n;ba};:b;s//\n&/;P;D' | sed 's/  //g'
 ```
 __Get node current using resources:__
 ```
@@ -275,6 +254,7 @@ kubectl get pods -n kube-system -o wide --show-labels
 __Execute bash inside a pod:__
 ```
 kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+kubectl exec -i --tty <pod_name> -n <namespace> -- /bin/bash
 ```
 __Get pods running on specific node:__
 ```
@@ -290,7 +270,7 @@ kubectl get pods -o custom-columns=NAME:.metadata.name,LIMIT-CPU:.spec.container
 ```
 or:
 ```
-kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{"CPU_Limit:"}{.spec.containers[].resources.limits.cpu}{"\t"}{"Memory_Limit:"}{.spec.containers[].resources.limits.memory}{"\t"}{"CPU_Request:"}{.spec.containers[].resources.requests.cpu}{"\t"}{"Memory_Request:"}{.spec.containers[].resources.requests.memory}{"\n"}{"\n"}{end}'
+kubectl get pods -n <namespace> -o=jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{"CPU_Limit:"}{.spec.containers[].resources.limits.cpu}{"\t"}{"Memory_Limit:"}{.spec.containers[].resources.limits.memory}{"\t"}{"CPU_Request:"}{.spec.containers[].resources.requests.cpu}{"\t"}{"Memory_Request:"}{.spec.containers[].resources.requests.memory}{"\n"}{"\n"}{end}'
 ```
 __Delete pod that is stuck on upgrading:__
 ```
@@ -302,8 +282,7 @@ kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
 ```
 __Get label version of every pod with label app=cassandra:__
 ```
-kubectl get pods --selector=app=cassandra -o \
-  jsonpath='{.items[*].metadata.labels.version}'
+kubectl get pods --selector=app=cassandra -o jsonpath='{.items[*].metadata.labels.version}'
 ```
 __Get every pod being executed on default namespace:__
 ```
@@ -311,7 +290,7 @@ kubectl get pods --field-selector=status.phase=Running
 ```
 __Check the controlled description of the pod:__
 ```
-kubectl get pods --no-headers=true | awk '{print $1}' | xargs -l bash -c 'kubectl describe pod $0 | gre
+kubectl get pods --no-headers=true | awk '{print $1}' | xargs -l bash -c 'kubectl describe pod $0 | grep -i controlled'
 ```
 
 __Get logs:__
@@ -325,56 +304,10 @@ kubectl run nginx --image=nginx --restart=Never -n  # Execute pod in a specific 
 mynamespace                                         
 ```
 
-```
-kubectl exec test-pod1 -it -- bash # connect to the pod
-uname -a
-cat /etc/centos-release
-exit
-echo "test file 1" > testfile1.txt # copy a file to the pod
-kubectl cp testfile1.txt test-pod1:/root/testfile1.txt
-kubectl exec test-pod1 -it -- cat /root/testfile1.txt
-kubectl delete po test-pod1 # delete the pod
-kubectl create ns new-ns1 # create a new namespace
-cat <<EOF | kubectl -n new-ns1 apply -f - # create a pod in the new namespace using a yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: webpod1
-spec:
-  containers:
-  - name: webpod1
-    image: nginx
-    ports:
-    - containerPort: 80
-EOF
-kubectl -n new-ns1 get po -o wide # list the new pod and test the port 80 on 
-curl -m 5 10.244.2.5:80 # test the port 80 on that pod
-# oops, pod IP is not reachable from our main machine
-ssh ubuntu@masternode1 # let's try it from the masternode1 vm
-curl -m 5 10.244.2.5:80
-exit # exit the session from masternode1
-# using kubectl proxy in order to reach the pod IP from the main machine (you will need 2 ssh sessions open on the main machine)
-# from session 1
-kubectl -n new-ns1 port-forward pod/webpod1 8080:80 # from session 2 (you should see the nginx default page)
-curl localhost:8080 # to stop the port forward use control + c on session 1
-
-```
-
 __Docker get the size of the overlay mounts used:__
 ```
 sudo docker inspect $(docker ps -qa) |  jq -r 'map([.Name, .GraphDriver.Data.UpperDir]) | .[] | "\(.[0])\t\(.[1])"' | awk -F '/diff' '{print $1}' | awk '{printf $1" "}''{system("sudo du -sh " $2)}' | sort -rhk2
 ```
-
-__List services classified by name:__
-``` 
-kubectl get services --sort-by=.metadata.name
-```
-
-__List PersistentVolumes classified by capacity__
-```
-kubectl get pv --sort-by=.spec.capacity.storage
-```
-
 ## Secrets:
 
 __decrypt a secret:__
@@ -485,6 +418,10 @@ NODEPORT=$(kubectl get svc web-deploy1-svc | grep 80: | awk '{print $5}' | cut -
 # curl the nodeport
 curl workernode2:${NODEPORT} # now we can reach our app from outside the cluster using the nodeport
 ```
+__List services classified by name:__
+``` 
+kubectl get services --sort-by=.metadata.name
+```
 
 __Get all Kubernetes LB external IPs:__
 ```
@@ -500,6 +437,10 @@ kubectl get services --all-namespaces -o json | jq -r '.items[] | { name: .metad
 __Service port-forward:__
 ```
 Kubectl port-forward svc/argocd-server -n argocd 8083:80
+```
+__curl command:__
+```
+for ((i = 0; i < 10; i++)); do curl -o /dev/null -s "www.microsoft.com" -w "Connect %{time_connect}s, Start Transfer %{time_starttransfer}s Total %{time_total}s\n"; done
 ```
 
 ### Permissions:
@@ -541,9 +482,44 @@ Without bearer token:<br>
 kubectl get namespaces $NAMESPACE -o json | jq '.spec.finalizers=[]' > /tmp/ns.json
 kubectl proxy & curl -k -H "Content-Type: application/json" -X PUT --data-binary @/tmp/ns.json http://127.0.0.1:8001/api/v1/namespaces/$NAMESPACE/finalize
 ```
+### Pod disruption cases
 
-## Get PVC usage using curl
+- PDB Deletion : This is the easiest approach:<br>
+	- Take the backup of the PDB configuration and delete the pdb.<br>
+	- Once done Delete the PDB and upgrade the cluster.<br>
+	- Restore the PDB from the backup.<br>
+- Edit the deployment Replicas:<br>
+	- We can change the replicas of the deployment equal to the number of nodes in the cluster.<br>
+	- We need to make sure that the at least one pod of the deployment should be running on each node of the cluster.<br>
 
+__Check the disruptions:__ 
+```
+kubectl get poddisruptionbudgets -A
+kubectl describe poddisruptionbudget <name> -n <namespace> 
+```
+__Scale the replicas up:__
+```
+kubetl get deployments –all-namespaces
+kubectl scale --replicas=3 deployment mydeploymentname
+```
+__Or backup and delete pdb file:__
+```
+kubectl  get pdb <pdb_name> -n kube-system -o yaml > <pdb_name>_bkp.yaml
+kubectl delete pdb <pdb_name> -n <pdb_namespace>
+```
+__Reconcile the cluster:__
+az resource update -n cluster_name -g resource_group --namespace Microsoft.ContainerService -- resource-type ManagedClusters
+__Re-apply the backed up file:__
+```
+kubectl apply -f <pdb_name>_bkp.yaml
+```
+
+### Get PVC usage using curl
+
+__List PersistentVolumes classified by capacity__
+```
+kubectl get pv --sort-by=.spec.capacity.storage
+```
 __Get Cluster api endpoint server:__
 ```
 kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -d " "
@@ -621,7 +597,7 @@ kubectl node-shell <node> -- sh -c 'cat /tmp/passwd; rm -f /tmp/passwd'
 ```
 
 ## Network troubleshooting
-__DNS TROUBLESHOOTING:__<br<
+### DNS TROUBLESHOOTING:
 __From cluster:__<br>
 ```
 kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
@@ -634,6 +610,7 @@ Check dns from the windows bastion:<br>
 ```
 tnc fqdn -port 443
 ```
+__Create SSH-KEY pair for accessing nodes from windows bastion and propagate them:__<br>
 ```
 ssh-keygen -b 4096
 Generating public/private rsa key pair.
@@ -653,23 +630,18 @@ kubectl run -it --rm aks-ssh --image=mcr.microsoft.com/aks/fundamental/base-ubun
 apt-get update && apt-get install openssh-client -y
 kubectl cp id_rsa $(kubectl get pod -l run=aks-ssh -o jsonpath='{.items[0].metadata.name}'):/id_rsa
 chmod 0400 id_rsa
-ssh -i id_rsa azureuser@10.240.0.4
+ssh -i id_rsa azureuser@<internal_node_ip>
 ```
 __From node:__<br>
+__Install these tools:__
 ```
-Install these tools:
 apt-get update && apt install dnsutils -y 
 apt-get update && apt-get install iputils-ping -y 
 apt-get update && apt-get install curl -y
-The command below verifies that a proper record is returned by the DNS server(s) in /etc/resolv.conf: nslookup google.com
-The command below verifies that we can reach out to the internet and pull the website (verifies network connectivity outside of Azure): curl google.com
-If the above curl doesn’t work, then we should use windows 1 to ping google.com  to obtain the IP. Use the IP with the CURL command to see if it was a DNS lookup issue. (ping google.com -4 to get the IPv4 result) curl 172.217.14.238
-Testing network connectivity within the cluster from the node or pod using windows 1 run: kubectl get pods -o wide
-Using an IP associated with a pod that’s not our test pod, try to ping it within windows 2: ping < pod IP >
-If not already done, try to ping a pod that exists on a different node than the node that your testing pod exists on too.
-Testing network connectivity from a POD destined outside of the cluster using windows 2: ping google.com
-The connection will not return successful pings but you will be able to observe the IP it attempt to reach.
-
+```
+__The command below verifies that a proper record is returned by the DNS server(s) in /etc/resolv.conf:__<br>
+```
+nslookup microsoft.com
 nc -vz fqdn 443
 curl -vso /dev/null https://fqdn
 curl -vso /dev/null https://fqdn-ip
@@ -683,9 +655,14 @@ az vmss run-command invoke -g MC_ACS-RG-(..) -n aks-(..)-vmss --command-id RunSh
 __From pod:__<br>
 ```
 kubectl run tmp-shell --restart=Never -i --tty --image nicolaka/netshoot -- /bin/bash
-# Checked for the /etc/resolv.conf inside the pod to see if it was matching the kube-dns upstream server
+```
+__Check for the /etc/resolv.conf inside the pod to see if it was matching the kube-dns upstream server:__<br>
+```
 kubectl get svc -n kube-system
 service/kube-dns                         ClusterIP   10.245.64.10    <none>        53/UDP,53/TCP   23d       k8s-app=kube-dns
+```
+__inside pod:__
+```
 cat /etc/resolv.conf
 nameserver 10.245.64.10 search default.svc.cluster.local svc.cluster.local cluster.local
 curl -v telnet://fqdn:443
@@ -809,6 +786,9 @@ tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 262144 byt
 ```
 
 More info on `tcpdump` can be found [here](http://www.tcpdump.org/tcpdump_man.html).
+
+![tcp dump cheat sheet](./assets/images/tcpdump_cheatsheet.png)
+![wireshark cheat sheet](./assets/images/wireshark_cheatsheet.png)
 
 ## netstat
 
@@ -1187,8 +1167,6 @@ To get data into ctop, you'll need to bind docker.sock into the netshoot contain
 
 `/ # docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock nicolaka/netshoot ctop`
 
-![ctop.png](img/ctop.png)
-
 It will display running and existed containers with useful metrics to help troubleshoot resource issues; hit "q" to exit.
 
 ## Termshark
@@ -1208,7 +1186,7 @@ Termshark is a terminal user-interface for tshark. It allows user to read pcap f
 More info on `termshark` [here](https://github.com/gcla/termshark)
 
 
-## Kubectl aliases
+# Kubectl aliases for bash
 Put the following in your bash_profile or within a text file and call it:<br>
 ```
 alias k8s=kubectl

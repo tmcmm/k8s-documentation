@@ -67,7 +67,8 @@ __get cluster certificates vaildity:__
 ```
 kubectl config view --raw -o jsonpath="{.clusters[?(@.name == 'myAKSCluster')].cluster.certificate-authority-data}" | base64 -d | openssl x509 -text | grep -A2 Validity
 ```
-__rotate Certificates:__
+__Rotate Certificates:__<br>
+[azure-certificates-aks](https://docs.microsoft.com/pt-pt/azure/aks/certificate-rotation "Azure Certicates AKS")<br>
 ```
 az aks rotate-certs -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME
 ```
@@ -97,6 +98,10 @@ az vmss list -o table
 __Launch a command in a specific node instance:__
 ```
 az vmss run-command invoke -g <Resource_group> -n <Node_Instance> --command-id RunShellScript --instance-id 0 --scripts "ping microsoft.com" -o json | jq ".value[].message"
+```
+__If Availability Set:__
+```
+az vm run-command invoke -g <nodeResourceGroup> -n <VM Name> --scripts "hostname && date && cat /etc/kubernetes/azure.json" --command-id RunShellScript
 ```
 __Get kubelet logs:__
 ```
@@ -129,6 +134,15 @@ az group delete --name
 __List all your sp created under your susbcription:__
 ```
 az ad sp list --show-mine --query "[].{id:appId, tenant:appOwnerTenantId, name:displayName}"
+```
+__Assign Contributor role to the VNET/SUBNET on the SP_ID:__
+```
+az role definition list --query "[].{name:name, roleType:roleType, roleName:roleName}" --output tsv
+az group list --query "[].{name:name}" --output tsv
+az role definition list --name "Contributor"
+VNET_ID=$(az network vnet show --resource-group myResourceGroup --name myAKSVnet --query id -o tsv)
+SUBNET_ID=$(az network vnet subnet show --resource-group myResourceGroup --vnet-name myAKSVnet --name myAKSSubnet --query id -o tsv)
+az role assignment create --assignee <appId> --scope $VNET_ID --role "Network Contributor"
 ```
 __kubernetes check ServicePrincipalId:__
 ```
@@ -188,7 +202,6 @@ __after run from az-cli:__
 ```
 az aks update-credentials -g <clusterResourceGroup> -n <clusterName> --reset-service-principal --service-principal <appIDofNewSP> --client-secret <PasswordofNewSP>
 ```
-
 
 __add extensions to azure cli and configure node pools of aks cluster:__
 ```
