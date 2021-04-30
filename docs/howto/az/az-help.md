@@ -116,7 +116,10 @@ __Get all your vm on your subscription:__
 ```
 az vm list -o table
 ```
-
+__Check available Sku's under location:__
+```
+az vm list-skus --location ukwest --size Standard_B --all --output table ResourceType Locations Name Zones
+```
 __Create alias in your bash_profile:__
 ```
 alias azvmpublickey='_azvmpublickey(){ az vm show -g "$1" -n "$2" --query "{VMName:name, admin:osProfile.adminUsername, sshKey:osProfile.linuxConfiguration.ssh.publicKeys[0].keyData }" -o json ;}; _azvmpublickey'
