@@ -124,7 +124,12 @@ __Create alias in your bash_profile:__
 ```
 alias azvmpublickey='_azvmpublickey(){ az vm show -g "$1" -n "$2" --query "{VMName:name, admin:osProfile.adminUsername, sshKey:osProfile.linuxConfiguration.ssh.publicKeys[0].keyData }" -o json ;}; _azvmpublickey'
 ```
-
+__Get VM private ip__
+```
+az vm list-ip-addresses --query "[?virtualMachine.name=='vm_name']"
+alias azvmprivateip='_azvmprivateip(){ az vm list-ip-addresses --query "[?virtualMachine.name=="$1"]" -o json ;}; _azvmprivateip
+ ```
+ 
 ## Account Related
 __list resource_groups:__
 ```
