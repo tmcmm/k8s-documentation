@@ -50,7 +50,21 @@ __create nodepool with conteinerd:__
 ```
 az aks nodepool add --name <node_pool_name> --cluster-name <cluster_name> --resource-group <resource_group> --aks-custom-headers CustomizedUbuntu=aks-ubuntu,ContainerRuntime=containerd --kubernetes-version=1.16.13
 ```
+__Cluster pending in upgrading state:__
+Refresh the service principle using the same secret to get the cluster back to succeeded state.<br>
+Retrieve the secret by running this command on any node:<br>
+```
+az vm run-command invoke -g <nodeResourceGroup> -n <VM Name> --scripts "cat /etc/kubernetes/azure.json" --command-id RunShellScript
+az vmss run-command invoke -g <Resource_group> -n <Node_Instance> --command-id RunShellScript --instance-id 0 --scripts "cat /etc/kubernetes/azure.json" -o json | jq ".value[].message"
+```
+!!! note "Note"
 
+    Make sure that you do not create a new secret. You have to use the same one obtained from the above step.
+
+Update the cluster credentials using the service principal ID and secret from the above step.<br>
+```
+az aks update-credentials --reset-service-principal --service-principal <SP_ID> --client-secret <SP_Secret> -g <myResourceGroup> -n <myAKSCluster>
+ ```
 __reconcile cluster:__
 ```
 az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService -- resource-type ManagedClusters
