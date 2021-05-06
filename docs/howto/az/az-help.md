@@ -50,7 +50,7 @@ __create nodepool with conteinerd:__
 ```
 az aks nodepool add --name <node_pool_name> --cluster-name <cluster_name> --resource-group <resource_group> --aks-custom-headers CustomizedUbuntu=aks-ubuntu,ContainerRuntime=containerd --kubernetes-version=1.16.13
 ```
-__Cluster pending in upgrading state:__
+__Cluster pending in upgrading state:__<br>
 Refresh the service principle using the same secret to get the cluster back to succeeded state.<br>
 Retrieve the secret by running this command on any node:<br>
 ```
