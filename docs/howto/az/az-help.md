@@ -64,20 +64,20 @@ az vmss run-command invoke -g <Resource_group> -n <Node_Instance> --command-id R
 Update the cluster credentials using the service principal ID and secret from the above step.<br>
 ```
 az aks update-credentials --reset-service-principal --service-principal <SP_ID> --client-secret <SP_Secret> -g <myResourceGroup> -n <myAKSCluster>
- ```
-__reconcile cluster:__
+```
+__Reconcile cluster:__
 ```
 az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService -- resource-type ManagedClusters
 ```
-__stop cluster:__
+__Stop cluster:__
 ```
 az aks stop --resource-group <Resource_Group> --name <Cluster_name>
 ```
-__start cluster:__
+__Start cluster:__
 ```
 az aks start --resource-group <Resource_Group> --name <Cluster_name>
 ```
-__get cluster certificates vaildity:__
+__Get cluster certificates vaildity:__
 ```
 kubectl config view --raw -o jsonpath="{.clusters[?(@.name == 'myAKSCluster')].cluster.certificate-authority-data}" | base64 -d | openssl x509 -text | grep -A2 Validity
 ```
