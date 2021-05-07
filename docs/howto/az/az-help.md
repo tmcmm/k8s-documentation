@@ -111,8 +111,13 @@ az vmss list -o table
 ```
 __Launch a command in a specific node instance:__
 ```
-az vmss run-command invoke -g <Resource_group> -n <Node_Instance> --command-id RunShellScript --instance-id 0 --scripts "ping microsoft.com" -o json | jq ".value[].message"
+az vmss run-command invoke -g <Node_Resource_Group> -n <Node_Instance> --command-id RunShellScript --instance-id 0 --scripts "ping microsoft.com" -o json | jq ".value[].message"
 ```
+__If windows node pool__
+```
+az vmss run-command invoke -g <Node_Resource_Group> -n <Node_Instance> --command-id RunPowerShellScript --instance-id 0 --scripts "netsh advfirewall set currentprofile state off" -o json
+```
+
 __If Availability Set:__
 ```
 az vm run-command invoke -g <nodeResourceGroup> -n <VM Name> --scripts "hostname && date && cat /etc/kubernetes/azure.json" --command-id RunShellScript
