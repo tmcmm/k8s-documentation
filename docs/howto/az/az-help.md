@@ -292,19 +292,22 @@ az acr show --name tmcmmregistry --query loginServer
 
 ## Network Related
 
-__azure get subnet id:__
+__Azure get subnet id:__
 ```
 az network vnet subnet show -g <myResourceGroup> --vnet-name <myVnetName> --name <mySubnetName> --query id -o tsv ;}; _azsubnetid'
 ```
-__azure get vnet id:__
+__Azure get vnet id:__
 ```
 alias azbnetid='_aznetid(){ az network vnet subnet show -g <myResourceGroup> --name <myVnetName> --query id -o tsv ;}; _aznetid'
 ```
-__get used ips of a subnet:__
+__Get used ips of a subnet:__
 ```
 az network vnet subnet show -g <myResourceGroup> --vnet-name <myVnetName> --name <mySubnetName> | grep ipconfig | wc -l) | bc
 ```
-
+__Increase public ip count:__
+```
+az aks update --resource-group myResourceGroup --name myAKSCluster --load-balancer-managed-outbound-ip-count 2
+```
 ## Curl command
 
 __curl command:__
