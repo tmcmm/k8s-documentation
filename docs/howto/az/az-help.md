@@ -67,7 +67,7 @@ az aks update-credentials --reset-service-principal --service-principal <SP_ID> 
 ```
 __Reconcile cluster:__
 ```
-az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService -- resource-type ManagedClusters
+az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService --resource-type ManagedClusters
 ```
 __Stop cluster:__
 ```
@@ -77,6 +77,19 @@ __Start cluster:__
 ```
 az aks start --resource-group <Resource_Group> --name <Cluster_name>
 ```
+__Restart vmss__:<br>
+```
+az vmss restart -g MC_(...) -n <vmss_name> --instance-ids 2
+```
+__What if a node can't be restarted?__
+```
+# De-allocate the VM
+az vmss deallocate -g MC_(...) -n <vmss_name> --instance-ids 2
+
+# Start the deallocated VM again
+az vmss start -g MC_(...) -n <vmss_name> --instance-ids 2
+```
+
 __Get cluster certificates vaildity:__
 ```
 kubectl config view --raw -o jsonpath="{.clusters[?(@.name == 'myAKSCluster')].cluster.certificate-authority-data}" | base64 -d | openssl x509 -text | grep -A2 Validity
@@ -111,7 +124,7 @@ az vmss list -o table
 ```
 __Launch a command in a specific node instance:__
 ```
-az vmss run-command invoke -g <Node_Resource_Group> -n <Node_Instance> --command-id RunShellScript --instance-id 0 --scripts "ping microsoft.com" -o json | jq ".value[].message"
+az vmss run-command invoke -g <Node_Resource_Group> -n <Node_Instance> --command-id RunShellScript --instance-id 0 --scripts "nc -vz FQDN 443" -o json | jq ".value[].message"
 ```
 __If windows node pool__
 ```
