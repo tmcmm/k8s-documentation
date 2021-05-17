@@ -17,7 +17,7 @@ truncate -s0 ~/.kube/config
 az aks get-credentials --resource-group <Resource_Group> --name <Cluster_name> --overwrite-existing -f ~/.kube/config
 ```
 __get available upgrades:__<br>
-supported versions:<br>
+__supported versions:__<br>
 ```
 az aks get-versions --location <location> -o table
 ```
