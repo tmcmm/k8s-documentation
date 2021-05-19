@@ -10,6 +10,10 @@ __list cluster nodepool:__
 ```
 az aks nodepool list --resource-group <Resource_Group> --cluster-name <Cluster_name>
 ```
+__scale cluster nodepool:__
+```
+az aks nodepool scale --cluster-name --name --resource-group--no-wait --node-count 4
+```
 __get cluster credentials:__
 ```
 # truncate the kube config files:
@@ -160,8 +164,7 @@ __Get VM private ip__
 ```
 az vm list-ip-addresses --query "[?virtualMachine.name=='vm_name']"
 alias azvmprivateip='_azvmprivateip(){ az vm list-ip-addresses --query "[?virtualMachine.name=="$1"]" -o json ;}; _azvmprivateip
- ```
- 
+```
 ## Account Related
 __list resource_groups:__
 ```
@@ -277,8 +280,9 @@ az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/P
 ```
 
 __list all container ips on ACI:__
+```
 az container list -g <resourcegroup> --query '[].{Name:name, IpAddress:ipAddress.ip}' --output tsv
-
+```
 __show all container ips on a sub-net network:__
 ```
 az network vnet show -g <resourcegroup> -n <vnetName> --query '[subnets[].ipConfigurationProfiles[].id[], subnets[].ipConfigurations[].id[]]' -o json
