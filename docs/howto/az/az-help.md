@@ -112,7 +112,9 @@ __create cluster with uptime sla:__
 ```
 az aks create --resource-group myResourceGroup --name myAKSCluster --uptime-sla (...)
 ```
-__update cluster to uptime sla:__
+__update cluster to uptime sla:__<br>
+When we change to SLA to paid, it creates aditional API Servers to balance load<br>:
+[azure-aks-uptime-SLA](https://docs.microsoft.com/en-us/azure/aks/uptime-sla#modify-an-existing-cluster-to-use-uptime-sla "Azure AKS Uptime SLA")<br>
 ```
  az aks update --resource-group myResourceGroup --name myAKSCluster --uptime-sla
 ```
