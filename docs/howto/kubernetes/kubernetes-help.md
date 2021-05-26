@@ -2013,3 +2013,13 @@ echo -n "Kubectl Alias Search String: "
 read answer
 grep --colour -i $answer /home/$USER/.bashrc
 ```
+## Releases and Support Policy
+[AKS-Releases](https://github.com/Azure/AKS/releases/tag/2021-05-20 "AKS Releases")
+[AKS-Support](https://docs.microsoft.com/en-us/azure/aks/supported-kubernetes-versions "AKS Support")
+
+The supported window of Kubernetes versions on AKS is known as "N-2": (N (Latest release) - 2 (minor versions)).<br>
+For example, if AKS introduces 1.17.a today, support is provided for the following versions:<br>
+
+New minor version	Supported Version List<br>
+__1.17.a__	__1.17.a, 1.17.b, 1.16.c, 1.16.d, 1.15.e, 1.15.f__
+		 
