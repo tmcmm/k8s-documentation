@@ -595,7 +595,29 @@ cat /etc/passwd | kubectl node-shell <node> -- sh -c 'cat > /tmp/passwd'
 # Run oneliner script
 kubectl node-shell <node> -- sh -c 'cat /tmp/passwd; rm -f /tmp/passwd'
 ```
-
+## Using MSFT debug image
+[ssh-into-nodes](https://docs.microsoft.com/en-us/azure/aks/ssh "SSH Key")
+```
+kubectl get nodes -o wide
+```
+```
+kubectl debug node/aks-nodepool1-12345678-vmss000000 -it --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
+```
+__IF WINDOWS:__<br>
+```
+$ kubectl get pods
+NAME                                                    READY   STATUS    RESTARTS   AGE
+node-debugger-aks-nodepool1-12345678-vmss000000-bkmmx   1/1     Running   0          21s
+```
+```
+kubectl cp ~/.ssh/id_rsa node-debugger-aks-nodepool1-12345678-vmss000000-bkmmx:/id_rsa
+```
+```
+chmod 0400 id_rsa
+```
+```
+ssh -i id_rsa azureuser@<ip_of_windows_node>
+```
 ## Network troubleshooting
 ### DNS TROUBLESHOOTING:
 __From cluster:__<br>
@@ -1989,5 +2011,5 @@ __kubectl help script:__
 #! /bin/bash
 echo -n "Kubectl Alias Search String: "
 read answer
-grep --colour -i $answer /home/$USER/.zshrc (your bash rc file)
+grep --colour -i $answer /home/$USER/.bashrc
 ```
