@@ -123,6 +123,33 @@ __remove uptime sla:__
 ```
  az aks update --resource-group myResourceGroup --name myAKSCluster --no-uptime-sla
 ```
+__Api Server Cases:__
+__Check available vmss instances:__
+```
+az vmss list-instances -g Node_Resource_Group -n aks-(...)-vmss -o table
+```
+__Check for API Server communication:__
+```
+az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 443" -o json
+```
+__Check for the required ports:__<br>
+[azure-aks-egress](https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic "Azure Required Ports AKS")<br>
+```
+az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 9000" -o json
+```
+```
+az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 1194" -o json
+```
+__Fazer delete ao tunnel-front-pod:__
+```
+kubectl delete po -l component=tunnel -n kube-system
+```
+When the nodes are not in ready state then it would be a communication issue with the API server for which you can verify the following:<br>
+• Route table
+• DNS resolution on the DNS servers
+• NSG
+
+If nothing seems to resolve, restart API Server.<br>
 
 ### Launch a command directly from any node instance:
 __list available vmss:__
