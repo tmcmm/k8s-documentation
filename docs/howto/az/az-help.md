@@ -119,7 +119,7 @@ __Cost: Uptime SLA	$0.10 per cluster per hour__<br>
 ```
  az aks update --resource-group myResourceGroup --name myAKSCluster --uptime-sla
 ```
-__remove uptime sla:__
+__Remove uptime sla:__
 ```
  az aks update --resource-group myResourceGroup --name myAKSCluster --no-uptime-sla
 ```
@@ -140,14 +140,17 @@ az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id 
 ```
 az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 1194" -o json
 ```
-__Fazer delete ao tunnel-front-pod:__
+__Delete tunnel-front-pod:__
 ```
 kubectl delete po -l component=tunnel -n kube-system
 ```
 When the nodes are not in ready state then it would be a communication issue with the API server for which you can verify the following:<br>
-• Route table
-• DNS resolution on the DNS servers
-• NSG
+
+• Route table<br>
+
+• DNS resolution on the DNS servers<br>
+
+• NSG<br>
 
 If nothing seems to resolve, restart API Server.<br>
 
@@ -217,6 +220,9 @@ VNET_ID=$(az network vnet show --resource-group myResourceGroup --name myAKSVnet
 SUBNET_ID=$(az network vnet subnet show --resource-group myResourceGroup --vnet-name myAKSVnet --name myAKSSubnet --query id -o tsv)
 az role assignment create --assignee <appId> --scope $VNET_ID --role "Network Contributor"
 ```
+### Reset the SP Credentials
+[azure-aks-sp-reset](https://docs.microsoft.com/en-us/azure/aks/update-credentials#reset-the-existing-service-principal-credential "Reset existing Service Principal Credential")<br>
+
 __kubernetes check ServicePrincipalId:__
 ```
 az aks list --resource-group <Resource_Group> --query="[0].servicePrincipalProfile.clientId"
