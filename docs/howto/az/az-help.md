@@ -176,6 +176,11 @@ __Get kubelet logs:__
 ```
 az vmss run-command invoke -g MC_RG-AKS(..) -n aks-usernpool-(...)-vmss --command-id RunShellScript --instance-id 0 --scripts "sudo journalctl -u kubelet -o cat" -o json | jq ".value[].message" > logs.log
 ```
+__Restart Kubelet:__
+```
+az vm run-command invoke -g <nodeResourceGroup> -n <VM Name> --scripts "systemctl restart kubelet" --command-id RunShellScript -o json
+```
+
 __Create alias in your bash_profile:__
 alias azvmssrun='_azvmssrun(){ az vmss run-command invoke -g "$1" -n "$2" --command-id RunShellScript --instance-id 0 --scripts "nc -vz "$3" "$4"" -o json | jq ".value[].message";}; _azvmssrun'
 
