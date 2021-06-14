@@ -2,59 +2,68 @@
 
 ## Kubernetes related
 
-__list all your clusters under subscription:__
+__List all your clusters under subscription:__
 ```
 az aks list -o table
 ```
-__list cluster nodepool:__
+__List cluster nodepool:__
 ```
 az aks nodepool list --resource-group <Resource_Group> --cluster-name <Cluster_name>
 ```
-__scale cluster nodepool:__
+__Scale cluster nodepool:__
 ```
 az aks nodepool scale --cluster-name --name --resource-group--no-wait --node-count 4
 ```
-__get cluster credentials:__
+__Get cluster credentials:__
 ```
 # truncate the kube config files:
 truncate -s0 ~/.kube/config
 az aks get-credentials --resource-group <Resource_Group> --name <Cluster_name> --overwrite-existing -f ~/.kube/config
 ```
-__get available upgrades:__<br>
-__supported versions:__<br>
+### Upgrade Custer<br>
+During the upgrade process, AKS will:<br>
+
+- Add a new buffer node (or as many nodes as configured in max surge) to the cluster that runs the specified Kubernetes version.<br>
+- Cordon and drain one of the old nodes to minimize disruption to running applications (if you're using max surge it will cordon and drain as many nodes at the same time as the number of buffer nodes specified).<br>
+- When the old node is fully drained, it will be reimaged to receive the new version and it will become the buffer node for the following node to be upgraded.<br>
+- This process repeats until all nodes in the cluster have been upgraded.<br>
+- At the end of the process, the last buffer node will be deleted, maintaining the existing agent node count and zone balance.<br>
+
+__Get available upgrades:__<br>
+__Supported versions:__<br>
 ```
 az aks get-versions --location <location> -o table
 ```
 ```
  az aks get-upgrades --resource-group <Resource_Group> --name <Cluster_name> --output table
 ```
-__to upgrade the node pools:__
+__To upgrade the node pools:__
 ```
 az aks nodepool update -n <nodepoolname> --cluster-name <cluster name> -g <rgname> --max-surge 5
 az aks nodepool upgrade -n <nodepoolname> --cluster-name <cluster name> -g <rgname> --kubernetes-version <1.xx.xx>
 ```
 
-__upgrade AKS cluster (only control plane):__
+__Upgrade AKS cluster (only control plane):__
 ```
 az aks upgrade --kubernetes-version <1.xx.xx> -n <cluster name> -g <rgname> --control-plane-only
 ```
-__upgrade the cluster:__[Azure AKS upgrade Homepage](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Azure AKS Upgrade")<br>
+__Upgrade the cluster:__[Azure AKS upgrade Homepage](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Azure AKS Upgrade")<br>
 ```
 az aks upgrade --resource-group myResourceGroup --name myAKSCluster --kubernetes-version KUBERNETES_VERSION
 ```
-__check the version of the cluster by running the following command:__
+__Check the version of the cluster by running the following command:__
 ```
 az aks show -g <rgname> -n <cluster name> -o table
 ```
-__check the version of the worker nodes inside cluster:__
+__Check the version of the worker nodes inside cluster:__
 ```
 az aks nodepool show --cluster-name vnodes -g vnodes -n agentpool
 ```
-__create nodepool with conteinerd:__
+__Create nodepool with conteinerd:__
 ```
 az aks nodepool add --name <node_pool_name> --cluster-name <cluster_name> --resource-group <resource_group> --aks-custom-headers CustomizedUbuntu=aks-ubuntu,ContainerRuntime=containerd --kubernetes-version=1.16.13
 ```
-__Cluster pending in upgrading state:__<br>
+### Cluster pending in upgrading state:
 Refresh the service principle using the same secret to get the cluster back to succeeded state.<br>
 Retrieve the secret by running this command on any node:<br>
 ```
@@ -73,6 +82,8 @@ __Reconcile cluster:__
 ```
 az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService --resource-type ManagedClusters
 ```
+### Cluster Actions:
+
 __Stop cluster:__
 ```
 az aks stop --resource-group <Resource_Group> --name <Cluster_name>
@@ -81,7 +92,7 @@ __Start cluster:__
 ```
 az aks start --resource-group <Resource_Group> --name <Cluster_name>
 ```
-__Restart vmss__:<br>
+__Restart vmss__:
 ```
 az vmss restart -g MC_(...) -n <vmss_name> --instance-ids 2
 ```
@@ -104,15 +115,15 @@ __Rotate Certificates:__<br>
 az aks rotate-certs -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME
 ```
 
-__after rotating certificates:__
+__After rotating certificates:__
 ```
 az aks get-credentials -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME --overwrite-existing
 ```
-__create cluster with uptime sla:__
+__Create cluster with uptime sla:__
 ```
 az aks create --resource-group myResourceGroup --name myAKSCluster --uptime-sla (...)
 ```
-__update cluster to uptime sla:__<br>
+__Update cluster to uptime sla:__<br>
 When we change to SLA to paid, it creates aditional API Servers to balance load:<br>
 [azure-aks-uptime-SLA](https://docs.microsoft.com/en-us/azure/aks/uptime-sla#modify-an-existing-cluster-to-use-uptime-sla "Azure AKS Uptime SLA")<br>
 __Cost: Uptime SLA	$0.10 per cluster per hour__<br>
@@ -123,7 +134,7 @@ __Remove uptime sla:__
 ```
  az aks update --resource-group myResourceGroup --name myAKSCluster --no-uptime-sla
 ```
-__Api Server Cases:__
+## Api Server Cases:
 __Check available vmss instances:__
 ```
 az vmss list-instances -g Node_Resource_Group -n aks-(...)-vmss -o table
@@ -204,11 +215,29 @@ az vm list-ip-addresses --query "[?virtualMachine.name=='vm_name']"
 alias azvmprivateip='_azvmprivateip(){ az vm list-ip-addresses --query "[?virtualMachine.name=="$1"]" -o json ;}; _azvmprivateip
 ```
 ## Account Related
-__list resource_groups:__
+
+
+__List all resources of the resource group:__
+```
+az resource list --query "[?resourceGroup=='akslab'].{ name: name, flavor: kind, resourceType: type, region: location }" --output table
+```
+__Azure list all subscriptions:__
+```
+az account list --output table
+```
+__Azure set specific subscriptions:__
+```
+az account set --subscription "My Demos"
+```
+__Azure run command for a specific subscription:__
+```
+az vm create --subscription "My Demos" --resource-group MyGroup --name NewVM --image Ubuntu
+```
+__List resource_groups:__
 ```
 az group list -o table
 ```
-__delete resource_groups:__
+__Delete resource_groups:__
 ```
 az group delete --name
 ```
@@ -226,13 +255,14 @@ SUBNET_ID=$(az network vnet subnet show --resource-group myResourceGroup --vnet-
 az role assignment create --assignee <appId> --scope $VNET_ID --role "Network Contributor"
 ```
 ### Reset the SP Credentials
+
 [azure-aks-sp-reset](https://docs.microsoft.com/en-us/azure/aks/update-credentials#reset-the-existing-service-principal-credential "Reset existing Service Principal Credential")<br>
 
-__kubernetes check ServicePrincipalId:__
+__Kubernetes check ServicePrincipalId:__
 ```
 az aks list --resource-group <Resource_Group> --query="[0].servicePrincipalProfile.clientId"
 ```
-__get service principal end Date:__
+__Get service principal end Date:__
 ```
 az ad sp credential list --id <clientid> --query "[].endDate" -o tsv
 ```
@@ -248,7 +278,7 @@ __Now that we have the SP appID and password we can reset the SP password expira
 ```
 az ad sp credential reset -n <appIDofSP> -p <passwordofSP> --years <NunmberOfYears>
 ```
-__create a new service principal__:
+__Create a new service principal__:
 ```
 az ad sp create-for-rbac \
     --name $AKS_SP_NAME \
@@ -260,7 +290,7 @@ AKS_SP_NAME=$(az ad sp list --show-mine --query "[].{id:appId, tenant:appOwnerTe
 AKS_SP_APP_ID=$(az ad app list --display-name "$AKS_SP_NAME" --query "[].appId" -o tsv)
 AKS_SP_SECRET=$(az ad sp credential reset --name $AKS_SP_NAME --query "password" -o tsv)
 ```
-__add SP to a new cluster:__
+__Add SP to a new cluster:__
 ```
 az aks create --resource-group $RG_NAME --name $CLUSTER_NAME \
     --service-principal $AKS_SP_APP_ID \
@@ -269,7 +299,7 @@ az aks create --resource-group $RG_NAME --name $CLUSTER_NAME \
     --node-vm-size Standard_DS2_v2 \
  (....)
 ```
-__add SP to a existing cluster:__
+__Add SP to a existing cluster:__
 ```
 az aks update-credentials \
 --resource-group myResourceGroup \
@@ -278,16 +308,18 @@ az aks update-credentials \
 --service-principal $AKS_SP_APP_ID \  
 --client-secret $AKS_SP_SECRET
 ```
-### 3rd option:
+### Using Azure Portal:
+
 • Using the Azure portal navigate to Azure AD, then "App registrations" and create a new Service Principal.
 • Then create a password for this new SP in the "Certificates and secrets" section
 • Once you hit "Save" the password will be shown just once, have the customer save it somewhere.
-__after run from az-cli:__
+
+__After run from az-cli:__
 ```
 az aks update-credentials -g <clusterResourceGroup> -n <clusterName> --reset-service-principal --service-principal <appIDofNewSP> --client-secret <PasswordofNewSP>
 ```
 
-__add extensions to azure cli and configure node pools of aks cluster:__
+__Add extensions to azure cli and configure node pools of aks cluster:__
 ```
 az extension add --name aks-preview
 az extension update --name aks-preview
@@ -295,36 +327,17 @@ az feature register --namespace "Microsoft.ContainerService" --name "CustomNodeC
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/CustomNodeConfigPreview')].{Name:name,State:properties.state}"
 ```
 
-__list all resources of the resource group:__
-```
-az resource list --query "[?resourceGroup=='akslab'].{ name: name, flavor: kind, resourceType: type, region: location }" --output table
-```
-
-__azure list all subscriptions:__
-```
-az account list --output table
-```
-__azure set specific subscriptions:__
-```
-az account set --subscription "My Demos"
-```
-__azure run command for a specific subscription:__
-```
-az vm create --subscription "My Demos" --resource-group MyGroup --name NewVM --image Ubuntu
-```
-
-
 ## ACR related
-__azure list podsecuritypolicy:__
+__Azure list podsecuritypolicy:__
 ```
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/PodSecurityPolicyPreview')].{Name:name,State:properties.state}"
 ```
 
-__list all container ips on ACI:__
+__List all container ips on ACI:__
 ```
 az container list -g <resourcegroup> --query '[].{Name:name, IpAddress:ipAddress.ip}' --output tsv
 ```
-__show all container ips on a sub-net network:__
+__Show all container ips on a sub-net network:__
 ```
 az network vnet show -g <resourcegroup> -n <vnetName> --query '[subnets[].ipConfigurationProfiles[].id[], subnets[].ipConfigurations[].id[]]' -o json
 ```
@@ -334,18 +347,18 @@ az acr login -n tmcmmregistry --expose-token
 docker login tmcmmregistry.azurecr.io -u 00000000-0000-0000-0000-000000000000 -p <token>
 ```
 
-__check if provider is registered:__
+__Check if provider is registered:__
 ```
 az provider list --query "[?contains(namespace,'Microsoft.ContainerInstance')]" -o table
 ```
 
-__list images in azure container registry:__
+__List images in azure container registry:__
 ```
 az acr repository list --name <acrName> --output table
 ```
-__get registry credentials:__
+__Get registry credentials:__
 ```
-az acr show --name tmcmmregistry --query loginServer
+az acr show --name <acrName> --query loginServer
 ```
 
 ## Network Related
@@ -376,3 +389,4 @@ __using bash alias:__
 ```
 alias curltime='_curltime(){ for ((i = 0; i < 10; i++)); do curl -o /dev/null -s $1 -w "Connect %{time_connect}s, Start Transfer %{time_starttransfer}s Total %{time_total}s\n"; done ;}; _curltime'
 ```
+
