@@ -255,6 +255,7 @@ __Execute bash inside a pod:__
 ```
 kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 kubectl exec -i --tty <pod_name> -n <namespace> -- /bin/bash
+kubectl exec tunnelfront-(..) -n kube-system -it sh
 ```
 __Get pods running on specific node:__
 ```
@@ -514,6 +515,35 @@ __Re-apply the backed up file:__
 kubectl apply -f <pdb_name>_bkp.yaml
 ```
 
+### Tunnel Front Cases
+__Check for kube api server logs for the string:__
+```
+WRN: Was not able to establish tunnel, is tunnel-front connected?
+INF: going to sleep for:[5] Seconds
+```
+__Check logs for the tunnel front pod:__
+```
+kubectl -n kube-system logs -l component=tunnel
+```
+__Try to recreate the tunnelfront pod:__
+```
+kubectl -n kube-system delete po -l component=tunnel
+```
+
+__Check inside the tunnelfront pod:__
+```
+Exec into the tunnelfront pod:
+kubectl exec tunnelfront-(...) -n kube-system -it sh
+Inside the pod:
+curl -v FQDN:443
+curl -v FQDN:9000
+curl -v FQDN:1194
+route
+cat /etc/resolv.conf
+nslookup FQDN
+```
+
+
 ### Get PVC usage using curl
 
 __List PersistentVolumes classified by capacity__
@@ -632,28 +662,6 @@ Check dns from the windows bastion:<br>
 ```
 tnc fqdn -port 443
 ```
-__Create SSH-KEY pair for accessing nodes from windows bastion and propagate them:__<br>
-```
-ssh-keygen -b 4096
-Generating public/private rsa key pair.
-Enter file in which to save the key (C:\Users\$USER/.ssh/id_rsa):
-
-CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group myResourceGroup --name myAKSCluster --query nodeResourceGroup -o tsv)
-SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query '[0].name' -o tsv)
-az vmss extension set  \
-    --resource-group $CLUSTER_RESOURCE_GROUP \
-    --vmss-name $SCALE_SET_NAME \
-    --name VMAccessForLinux \
-    --publisher Microsoft.OSTCExtensions \
-    --version 1.4 \
-    --protected-settings "{\""username\"":\""azureuser\"", \""ssh_key\"":\""$(cat ~/.ssh/id_rsa.pub)\""}"
-az vmss update-instances --instance-ids '*' --resource-group  MC_rg-aks-(...)_westeurope  --name aks-(...)-vmss
-kubectl run -it --rm aks-ssh --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
-apt-get update && apt-get install openssh-client -y
-kubectl cp id_rsa $(kubectl get pod -l run=aks-ssh -o jsonpath='{.items[0].metadata.name}'):/id_rsa
-chmod 0400 id_rsa
-ssh -i id_rsa azureuser@<internal_node_ip>
-```
 __From node:__<br>
 __Install these tools:__
 ```
@@ -697,6 +705,27 @@ curl -v https://servicefqdn.com:443
 tcpdump -ni eth0 -w ethcap-%H.pcap -e -C 200 -G 3600 -K OR tcpdump -s 0 -vvv -w /path/nameofthecapture.cap
 scp -i id_rsa azureuser@10.240.0.4:/home/azureuser/ethcap-17.pcap /
 kubectl cp aks-ssh:/ethcap-17.pcap /home/user/ethcap-17.pcap
+```
+### Using tshark inside the node
+```
+sudo apt update
+sudo apt install tshark
+sudo tshark -i eth0 -f 'port 80' -Y "http.request.method == "GET" && http contains YO" -T fields -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e ip.proto
+```
+
+Param	Purpose:<br>
+
+1. -i eth0	Select the eth0 network interface
+2. -f ‘port 80’	This is a filter for tcpdump to just get traffic to port 80
+3. -Y “http.request.method == “GET” && http contains YO”	Since we’re grabbing all port 80 traffic we need a way to filter it down to our specific requests. 
+There are many ways to do this, but I chose to use the -Y flag to query out all of the GET requests that contain the word ‘YO’
+4. -T fields -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e ip.proto	Display the source ip, source port, destination ip, destination port and protocol as output (6=TCP for protocol)
+
+__Use Hey to send packets:__<br>
+[hey tool](https://github.com/rakyll/hey "Hey tool")<br>
+```
+hey -d "YO" -n 10 -c 1 http://20.62.153.212
+hey --disable-keepalive -d "YO" -n 10 -c 1 http://20.62.153.212
 ```
 
 To get network traces from the Pod, you can do the following:<br>
