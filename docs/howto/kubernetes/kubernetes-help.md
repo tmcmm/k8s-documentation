@@ -411,6 +411,10 @@ kubectl get svc -A # list services in the cluster
 kubectl describe po kube-apiserver-masternode1 -n kube-system
 kubectl describe svc kube-dns -n kube-system # describe the kube-dns service
 kubectl get po -l k8s-app=kube-dns -A -o wide # check coredns pods IPs
+## Alter SVC ExternalIP
+kubectl patch svc lb-service  -p '{"spec": {"type": "LoadBalancer", "externalIPs":["20.72.122.190"]}}'
+
+
 # endpoints match the coredns pods IPs
 kubectl expose deployment web-deploy1 --name web-deploy1-svc --type=NodePort --target-port=80 # create a service for the web-deploy1 deployment
 kubectl expose deployment web-deploy1 --name web-deploy1-svc --type=NodePort --target-port=80 --dry-run -o yaml # can we see the yaml for what we just did? sure
