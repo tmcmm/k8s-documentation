@@ -83,6 +83,8 @@ __Reconcile cluster:__
 az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService --resource-type ManagedClusters
 ```
 ### Cluster Actions:
+[Azure AKS stop & start](https://docs.microsoft.com/en-us/azure/aks/start-stop-cluster "Azure AKS Stop & Start")<br>
+
 
 __Stop cluster:__
 ```
