@@ -611,7 +611,7 @@ __bash script you can use:__
 ![k8s pvc prd](./assets/images/pvc-claim.png)
 
 
-## Get a shell into a node using kubectl
+## SSH INTO A NODE
 
 [kubectl-node](https://github.com/kvaps/kubectl-node-shell "Node Shell")
 ```
@@ -637,6 +637,12 @@ kubectl get nodes -o wide
 ```
 kubectl debug node/aks-nodepool1-12345678-vmss000000 -it --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
 ```
+__other images:__<br>
+```
+kubectl debug node/aks-nodepool1-12345678-vmss000000 -it --image=busybox
+kubectl debug node/aks-nodepool1-12345678-vmss000000 -it --image=nicolaka/netshoot
+```
+
 __IF WINDOWS:__<br>
 ```
 $ kubectl get pods
