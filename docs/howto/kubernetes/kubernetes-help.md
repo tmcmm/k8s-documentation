@@ -123,6 +123,13 @@ balancer that balances load to the **service** inside the cluster
 
 ![k8s kernel](./assets/images/kubernetes_arm_kernel.png)
 
+## Azure CNI
+When using Azure CNI, Every pod is assigned a VNET route-able private IP from the subnet. So, Gateway should be able reach the pods directly.<br>
+
+## Kubenet
+When using Kubenet mode, Only nodes receive an IP address from subnet. Pod are assigned IP addresses from the PodIPCidr and a route table is created by AKS.<br>
+This route table helps the packets destined for a POD IP reach the node which is hosting the pod.<br>
+
 ## Kubernetes Cheat Sheet
 
 ## Autocomplete
@@ -2053,8 +2060,10 @@ read answer
 grep --colour -i $answer /home/$USER/.bashrc
 ```
 ## Releases and Support Policy
-[AKS-Releases](https://github.com/Azure/AKS/releases/tag/2021-05-20 "AKS Releases")
-[AKS-Support](https://docs.microsoft.com/en-us/azure/aks/supported-kubernetes-versions "AKS Support")
+[AKS-Releases](https://github.com/Azure/AKS/releases/tag/2021-05-20 "AKS Releases")<br>
+[AKS-Support](https://docs.microsoft.com/en-us/azure/aks/supported-kubernetes-versions "AKS Support")<br>
+
+[How to setup networking between Application Gateway and AKS](https://azure.github.io/application-gateway-kubernetes-ingress/how-tos/networking/#with-kubenet "How to setup networking between Application Gateway and AKS")<br>
 
 The supported window of Kubernetes versions on AKS is known as "N-2": (N (Latest release) - 2 (minor versions)).<br>
 For example, if AKS introduces 1.17.a today, support is provided for the following versions:<br>
