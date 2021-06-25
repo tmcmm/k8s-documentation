@@ -203,6 +203,21 @@ __Get all your vm on your subscription:__
 ```
 az vm list -o table
 ```
+__List available vmss:__
+```
+az vmss list -o table
+```
+__List all instances into the nodepool:__
+```
+az vmss list-instances -g Node_Resource_Group -n aks-(...)-vmss -o table
+```
+__Delete nodepool:__
+```
+az vmss delete --name --resource-group --no-wait
+```
+```
+ az vmss delete-instances --resource-group myResourceGroup --name myScaleSet --instance-ids 0
+```
 __Check available Sku's under location:__
 ```
 az vm list-skus --location ukwest --size Standard_B --all --output table ResourceType Locations Name Zones
