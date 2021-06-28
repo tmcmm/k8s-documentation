@@ -189,6 +189,11 @@ __Get cluster certificates validity:__
 ```
 kubectl config view --raw -o jsonpath="{.clusters[?(@.name == 'myAKSCluster')].cluster.certificate-authority-data}" | base64 -d | openssl x509 -text | grep -A2 Validity
 ```
+__Get Certificate details:__
+```
+echo | openssl s_client -servername microsoft -connect microsoft.com:443 2>/dev/null | openssl x509 -text
+curl --insecure -vvI https://microsoft.com 2>&1 | awk 'BEGIN { cert=0 } /^\* SSL connection/ { cert=1 } /^\*/ { if (cert) print }'
+```
 
 __Set a context with a different namespace:__
 ```
@@ -310,6 +315,10 @@ kubectl logs my-pod -c my-container                 # Get logs of specific conta
 kubectl logs -l name=myLabel -c my-container        # Get container logs of a pod label
 kubectl run nginx --image=nginx --restart=Never -n  # Execute pod in a specific namespace
 mynamespace                                         
+```
+__Get pod logs inside the node:__
+```
+find /var/log/pods -type f -name "*.log" | xargs cat | sort | uniq --count --repeated
 ```
 
 __Docker get the size of the overlay mounts used:__
