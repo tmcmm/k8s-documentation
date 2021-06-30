@@ -98,6 +98,11 @@ __Restart vmss__:
 ```
 az vmss restart -g MC_(...) -n <vmss_name> --instance-ids 2
 ```
+__Restart Availability set__:
+```
+az vm restart --ids $(az vm list -g MyResourceGroup --query "[].id" -o tsv)
+az vm restart -g MyResourceGroup -n MyVm
+```
 __What if a node can't be restarted?__
 ```
 # De-allocate the VM
