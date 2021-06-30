@@ -306,7 +306,7 @@ __Check the controlled description of the pod:__
 kubectl get pods --no-headers=true | awk '{print $1}' | xargs -l bash -c 'kubectl describe pod $0 | grep -i controlled'
 ```
 
-__Get logs:__
+__Get Logs:__
 ```
 kubectl logs my-pod                                 # Get pod logs
 kubectl logs -l name=myLabel                        # Get pod logs with label=mylabel
@@ -314,12 +314,24 @@ kubectl logs my-pod --previous                      # Get pod logs from the prev
 kubectl logs my-pod -c my-container                 # Get logs of specific container inside a pod
 kubectl logs -l name=myLabel -c my-container        # Get container logs of a pod label
 kubectl run nginx --image=nginx --restart=Never -n  # Execute pod in a specific namespace
-mynamespace                                         
+mynamespace   
+# Display only the most recent 20 lines of output in pod nginx
+kubectl logs --tail=20 nginx
+
+# Show all logs from pod nginx written in the last hour
+kubectl logs --since=1h nginx
 ```
+__Get Events:__
+```
+kubectl get events --field-selector involvedObject.kind!=Pod
+kubectl get events –field-selector type=Warning
+```
+
 __Get pod logs inside the node:__
 ```
 find /var/log/pods -type f -name "*.log" | xargs cat | sort | uniq --count --repeated
 ```
+
 
 __Docker get the size of the overlay mounts used:__
 ```
