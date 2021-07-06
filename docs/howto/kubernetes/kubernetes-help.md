@@ -502,10 +502,12 @@ kubectl get namespace opa -o json |jq '.spec = {"finalizers":[]}' > temp.json
 Using curl to send this finalizers string file to the namespace:
 [bearer-token-azure](https://social.technet.microsoft.com/wiki/contents/articles/53488.azure-rest-api-how-to-create-bearer-token.aspx "Bearer Token")
 Using bearer token:<br>
+
 ```
 kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -d " "
 KUBEAPI=https://aks-11814-rg-aks-11814-(...)f72f.hcp.westeurope.azmk8s.io:443
-curl -k -s $KUBEAPI/<namespace>/ -H 'Authorization: Bearer token-9wk2z:lwqlng8jt8fddd79x7mdhkd7x754wdx4rnjsldwxr7q2chtrkc7g6m'
+token=$(az account get-access-token --resource https://management.azure.com/ --query accessToken -o tsv)
+curl -k -s $KUBEAPI/<namespace>/ -H 'Authorization: Bearer ${token}'
 ```
 Use curl to POST it in the namespace:<br>
 ```
@@ -515,6 +517,12 @@ Without bearer token:<br>
 ```
 kubectl get namespaces $NAMESPACE -o json | jq '.spec.finalizers=[]' > /tmp/ns.json
 kubectl proxy & curl -k -H "Content-Type: application/json" -X PUT --data-binary @/tmp/ns.json http://127.0.0.1:8001/api/v1/namespaces/$NAMESPACE/finalize
+```
+__Delete things using curl__:
+```
+curl -H "Authorization: Bearer ${token}" -X DELETE https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/${virtualNetworkName}/subnets/${subnetName}/providers/Microsoft.ContainerInstance/serviceAssociationLinks/default?api-version=2018-10-01
+
+curl -H "Authorization: Bearer ${token}" -X DELETE https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Network/networkProfiles/${networkProfileName}?api-version=2020-05-01
 ```
 ### Pod disruption cases
 
