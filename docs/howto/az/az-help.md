@@ -403,6 +403,15 @@ __Increase public ip count:__
 ```
 az aks update --resource-group myResourceGroup --name myAKSCluster --load-balancer-managed-outbound-ip-count 2
 ```
+__Delete service association link:__
+```
+1. Get the service association link (SAL) ID:
+SAL_ID=$(az network vnet subnet show --resource-group <RESOURCEGROUP> --vnet-name <VNET> --name <SUBNET> --query id --output tsv)/providers/Microsoft.ContainerInstance/serviceAssociationLinks/default
+2. Delete the default SAL ID for the subnet:
+az resource delete --ids $SAL_ID --api-version 2018-07-01
+3. Delete the subnet delegation to Azure Container Instances:
+az network vnet subnet update --resource-group <RESOURCEGROUP> --vnet-name <VNET> --name <SUBNET> --remove delegations 0 <---If this command shows any error
+````
 ## Curl command
 
 __curl command:__
