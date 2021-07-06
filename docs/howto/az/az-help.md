@@ -148,18 +148,20 @@ az vmss list-instances -g Node_Resource_Group -n aks-(...)-vmss -o table
 ```
 __Check for API Server communication:__
 ```
-az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 443" -o json
+az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz -w 2 FQDN 443" -o json
 ```
 __Check for the required ports:__<br>
 [azure-aks-egress](https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic "Azure Required Ports AKS")<br>
 ```
-az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 9000" -o json
+az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz -w 2 FQDN 9000" -o json
 ```
 ```
-az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz  -w 2 FQDN 1194" -o json
+az vmss run-command invoke -g Node_Resource_Group -n aks-(..)-vmss --command-id RunShellScript --instance-id 6 --scripts "nc -vz -u -w 2 FQDN 1194" -o json
 ```
 __Delete tunnel-front-pod:__
 ```
+kubectl -n kube-system logs -l component=tunnel
+kubectl logs <api-server-pod_name> -n <ns name> -c tunnelend | grep connect
 kubectl delete po -l component=tunnel -n kube-system
 ```
 When the nodes are not in ready state then it would be a communication issue with the API server for which you can verify the following:<br>
