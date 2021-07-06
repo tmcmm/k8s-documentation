@@ -262,6 +262,7 @@ kubectl get po -o wide
 kubectl describe po test-pod1
 kubectl get pods -v=8 2>&1 --all-namespaces | tee /tmp/get-token.out
 kubectl get pods -n kube-system -o wide --show-labels
+kubectl get pods  kube-apiserver-master-01 -n  kube-system -o jsonpath='{.spec.containers[*].name}*' # get containers inside a pod
 ```
 __Execute bash inside a pod:__
 ```
