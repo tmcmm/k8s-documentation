@@ -524,66 +524,6 @@ curl -H "Authorization: Bearer ${token}" -X DELETE https://management.azure.com/
 
 curl -H "Authorization: Bearer ${token}" -X DELETE https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Network/networkProfiles/${networkProfileName}?api-version=2020-05-01
 ```
-### Pod disruption cases
-
-- PDB Deletion : This is the easiest approach:<br>
-	- Take the backup of the PDB configuration and delete the pdb.<br>
-	- Once done Delete the PDB and upgrade the cluster.<br>
-	- Restore the PDB from the backup.<br>
-- Edit the deployment Replicas:<br>
-	- We can change the replicas of the deployment equal to the number of nodes in the cluster.<br>
-	- We need to make sure that the at least one pod of the deployment should be running on each node of the cluster.<br>
-
-__Check the disruptions:__ 
-```
-kubectl get poddisruptionbudgets -A
-kubectl describe poddisruptionbudget <name> -n <namespace> 
-```
-__Scale the replicas up:__
-```
-kubetl get deployments –all-namespaces
-kubectl scale --replicas=3 deployment mydeploymentname
-```
-__Or backup and delete pdb file:__
-```
-kubectl  get pdb <pdb_name> -n kube-system -o yaml > <pdb_name>_bkp.yaml
-kubectl delete pdb <pdb_name> -n <pdb_namespace>
-```
-__Reconcile the cluster:__
-az resource update -n cluster_name -g resource_group --namespace Microsoft.ContainerService -- resource-type ManagedClusters
-__Re-apply the backed up file:__
-```
-kubectl apply -f <pdb_name>_bkp.yaml
-```
-
-### Tunnel Front Cases
-__Check for kube api server logs for the string:__
-```
-WRN: Was not able to establish tunnel, is tunnel-front connected?
-INF: going to sleep for:[5] Seconds
-```
-__Check logs for the tunnel front pod:__
-```
-kubectl -n kube-system logs -l component=tunnel
-```
-__Try to recreate the tunnelfront pod:__
-```
-kubectl -n kube-system delete po -l component=tunnel
-```
-
-__Check inside the tunnelfront pod:__
-```
-Exec into the tunnelfront pod:
-kubectl exec tunnelfront-(...) -n kube-system -it sh
-Inside the pod:
-curl -v FQDN:443
-curl -v FQDN:9000
-curl -v FQDN:1194
-route
-cat /etc/resolv.conf
-nslookup FQDN
-```
-
 
 ### Get PVC usage using curl
 
@@ -2101,3 +2041,157 @@ For example, if AKS introduces 1.17.a today, support is provided for the followi
 New minor version	Supported Version List<br>
 __1.17.a__	__1.17.a, 1.17.b, 1.16.c, 1.16.d, 1.15.e, 1.15.f__
 		 
+
+# General Cases
+	
+### Pod disruption cases
+
+- PDB Deletion : This is the easiest approach:<br>
+	- Take the backup of the PDB configuration and delete the pdb.<br>
+	- Once done Delete the PDB and upgrade the cluster.<br>
+	- Restore the PDB from the backup.<br>
+- Edit the deployment Replicas:<br>
+	- We can change the replicas of the deployment equal to the number of nodes in the cluster.<br>
+	- We need to make sure that the at least one pod of the deployment should be running on each node of the cluster.<br>
+
+__Check the disruptions:__ 
+```
+kubectl get poddisruptionbudgets -A
+kubectl describe poddisruptionbudget <name> -n <namespace> 
+```
+__Scale the replicas up:__
+```
+kubetl get deployments –all-namespaces
+kubectl scale --replicas=3 deployment mydeploymentname
+```
+__Or backup and delete pdb file:__
+```
+kubectl  get pdb <pdb_name> -n kube-system -o yaml > <pdb_name>_bkp.yaml
+kubectl delete pdb <pdb_name> -n <pdb_namespace>
+```
+__Reconcile the cluster:__
+az resource update -n cluster_name -g resource_group --namespace Microsoft.ContainerService -- resource-type ManagedClusters
+__Re-apply the backed up file:__
+```
+kubectl apply -f <pdb_name>_bkp.yaml
+```
+
+### Tunnel Front Cases
+__Check for kube api server logs for the string:__
+```
+WRN: Was not able to establish tunnel, is tunnel-front connected?
+INF: going to sleep for:[5] Seconds
+```
+__Check logs for the tunnel front pod:__
+```
+kubectl -n kube-system logs -l component=tunnel
+```
+__Try to recreate the tunnelfront pod:__
+```
+kubectl -n kube-system delete po -l component=tunnel
+```
+
+__Check inside the tunnelfront pod:__
+```
+Exec into the tunnelfront pod:
+kubectl exec tunnelfront-(...) -n kube-system -it sh
+Inside the pod:
+curl -v FQDN:443
+curl -v FQDN:9000
+curl -v FQDN:1194
+route
+cat /etc/resolv.conf
+nslookup FQDN
+```
+
+### Load balancer cases
+```
+az aks update  -g <resource_group> -n <cluster_name> --load-balancer-managed-outbound-ip-count=2
+az aks update  -g <resource_group> -n <cluster_name> --load-balancer-outbound-ports=2048
+az network public-ip list  --query "[?ipAddress=='public_ip_address'].id" -o table
+```
+```	
+kubectl get svc -n kube-system
+NAME                  TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+azure-load-balancer   LoadBalancer   10.0.239.155   <pending>     80:30653/TCP    100s
+````
+```	
+kubectl describe svc -n kube-system azure-load-balancer
+Name:                     azure-load-balancer
+Namespace:                kube-system
+Labels:                   <none>
+Annotations:              service.beta.kubernetes.io/azure-load-balancer-resource-group: MC_(...)
+Selector:                 app=azure-load-balancer
+Type:                     LoadBalancer
+IP:                       10.0.239.155
+IP:                       <public_ip_address>
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  30653/TCP
+Endpoints:                <none>
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:
+  Type     Reason                  Age                 From                Message
+  ----     ------                  ----                ----                -------
+  Normal   EnsuringLoadBalancer    42s (x5 over 118s)  service-controller  Ensuring load balancer
+  Warning  SyncLoadBalancerFailed  42s (x5 over 117s)  service-controller  Error syncing load balancer: failed to ensure load balancer: user supplied IP Address <public_ip_address> was not found in resource group MC_(...)
+```
+• Public IP appears to be attached to Standard External Load Balancer 
+• validated / reproduced timeouts 
+• Check for NSGs or route tables attached to subnet 
+• Reviewing load balancer VIP and DIP availability 
+• No SNAT flow failures 
+
+
+
+### Ingress cases
+	
+```	
+kubectl get ing -n <namespace-of-ingress-resource>
+kubectl describe ing <ingress-resource-name> -n <namespace-of-ingress-resource>
+kubectl get pods -n <namespace-of-ingress-controller>
+kubectl logs -n <namespace> nginx-ingress-controller-67956bf89d-fv58j
+kubectl exec -it -n <namespace-of-ingress-controller> nginx-ingress-controller-67956bf89d-fv58j -- cat /etc/nginx/nginx.conf
+```
+```
+Using the flag --v=XX it is possible to increase the level of logging. This is performed by editing the deployment.
+$ kubectl get deploy -n <namespace-of-ingress-controller>
+NAME                       DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+default-http-backend       1         1         1            1           35m
+nginx-ingress-controller   1         1         1            1           35m
+$ kubectl edit deploy -n <namespace-of-ingress-controller> nginx-ingress-controller
+# Add --v=X to "- args", where X is an integer
+```
+```
+sudo nmap --host-timeout=13000ms -p 443 -sT <public_ip_address>
+for ((i = 0; i < 10; i++)); do curl -o /dev/null -s "<public_ip_address>/DNS" -w "Connect %{time_connect}s, Start Transfer %{time_starttransfer}s Total %{time_total}s\n"; done
+```
+
+### AGIC
+The Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for Azure Kubernetes Service (AKS) customers to leverage Azure's native Application Gateway L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an Application Gateway, so that selected services are exposed to the Internet.<br>
+
+The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to Application Gateway specific configuration and applied to the Azure Resource Manager (ARM).<br>
+https://github.com/Azure/application-gateway-kubernetes-ingress<br>
+
+```
+Create the public ip address:
+az network public-ip create -n <appgtw_publicip_name> -g <resource_group> --allocation-method Static --sku Standard
+Create the subnet inside the cluster vnet:
+az network vnet subnet create -n <appgtw_subnet_name> --vnet-name <cluster_vnet_name> -g <resource_group> --address-prefixes 10.0.0.0/16
+Create the application-gateway:
+az network application-gateway create -n <appgtw_name> -l <location> -g <resource_group> --sku Standard_v2 --public-ip-address <appgtw_publicip_name> --vnet-name <cluster_vnet_name> --subnet <appgtw_subnet_name>
+Enabled the addon in the already existed cluster:
+appgwId=$(az network application-gateway show -n <appgtw_name> -g <resource_group> -o tsv --query id)
+az aks enable-addons -n <cluster_name> -g <resource_group> -a ingress-appgw --appgw-id $appgwId
+
+az network public-ip show -n ingress-appgateway-appgwpip -g MC_(..) | jq -r .ipAddress
+```
+AGIC helps eliminate the need to have another load balancer/public IP in front of the AKS cluster and avoids multiple hops in your datapath before requests reach the AKS cluster. Application Gateway talks to pods using their private IP directly and does not require NodePort or KubeProxy services.<br>
+
+
+
+
+		    
+	
+	
