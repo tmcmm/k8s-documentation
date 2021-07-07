@@ -219,8 +219,11 @@ __List all instances into the nodepool:__
 az vmss list-instances -g Node_Resource_Group -n aks-(...)-vmss -o table
 ```
 __Delete nodepool:__
+
 ```
-az vmss delete --name --resource-group --no-wait
+kubectl cordon <nodepool_name> #disable scheduling of pod on the node.
+kubectl drain <nodepool_name> --ignore-daemonsets
+az aks nodepool delete -g myResourceGroup --cluster-name myAKSCluster --name mynodepool --no-wait
 ```
 ```
  az vmss delete-instances --resource-group myResourceGroup --name myScaleSet --instance-ids 0
