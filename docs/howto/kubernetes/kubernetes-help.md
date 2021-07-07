@@ -2114,7 +2114,7 @@ az network public-ip list  --query "[?ipAddress=='public_ip_address'].id" -o tab
 kubectl get svc -n kube-system
 NAME                  TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
 azure-load-balancer   LoadBalancer   10.0.239.155   <pending>     80:30653/TCP    100s
-````
+```
 ```	
 kubectl describe svc -n kube-system azure-load-balancer
 Name:                     azure-load-balancer
@@ -2137,6 +2137,7 @@ Events:
   Normal   EnsuringLoadBalancer    42s (x5 over 118s)  service-controller  Ensuring load balancer
   Warning  SyncLoadBalancerFailed  42s (x5 over 117s)  service-controller  Error syncing load balancer: failed to ensure load balancer: user supplied IP Address <public_ip_address> was not found in resource group MC_(...)
 ```
+__Check for:__	<br>
 • Public IP appears to be attached to Standard External Load Balancer 
 • validated / reproduced timeouts 
 • Check for NSGs or route tables attached to subnet 
