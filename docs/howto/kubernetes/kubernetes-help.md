@@ -472,9 +472,11 @@ __Service port-forward:__
 ```
 Kubectl port-forward svc/argocd-server -n argocd 8083:80
 ```
-__curl command:__
+__Curl command time:__
 ```
 for ((i = 0; i < 10; i++)); do curl -o /dev/null -s "www.microsoft.com" -w "Connect %{time_connect}s, Start Transfer %{time_starttransfer}s Total %{time_total}s\n"; done
+
+alias curldns='curl -w "n\dnslookup: %{time_namelookup} | connect: %{time_connect} | appconnect: %{time_appconnect} | pretransfer: %{time_pretransfer} | redirect: %{time_redirect} | starttransfer: %{time_starttransfer} | total: %{time_total} | size: %{size_download}\n"'
 ```
 
 ### Permissions:
@@ -2267,5 +2269,12 @@ __From the node root, get out of memory errors from logs:__
 grep -i "out of memory" /var/log/kern.log
 dmesg | grep -i "out of memory"
 ```		    
+	
+## LINUX PERFORMANCE CHECKLIST
+	
+[Linux-Performance-Checklist](http://www.brendangregg.com/USEmethod/use-linux.htmlhttp://www.brendangregg.com/USEmethod/use-linux.html "Linux Performance Checklist")<br>
+![k8s performance](./assets/images/performance.png)
+
+
 	
 	
