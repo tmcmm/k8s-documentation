@@ -2168,7 +2168,7 @@ sudo nmap --host-timeout=13000ms -p 443 -sT <public_ip_address>
 for ((i = 0; i < 10; i++)); do curl -o /dev/null -s "<public_ip_address>/DNS" -w "Connect %{time_connect}s, Start Transfer %{time_starttransfer}s Total %{time_total}s\n"; done
 ```
 
-### AGIC
+### AGIC cases
 The Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for Azure Kubernetes Service (AKS) customers to leverage Azure's native Application Gateway L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an Application Gateway, so that selected services are exposed to the Internet.<br>
 
 The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to Application Gateway specific configuration and applied to the Azure Resource Manager (ARM).<br>
@@ -2189,9 +2189,82 @@ az network public-ip show -n ingress-appgateway-appgwpip -g MC_(..) | jq -r .ipA
 ```
 AGIC helps eliminate the need to have another load balancer/public IP in front of the AKS cluster and avoids multiple hops in your datapath before requests reach the AKS cluster. Application Gateway talks to pods using their private IP directly and does not require NodePort or KubeProxy services.<br>
 
+## Disk IO Pressure
 
+Use node-shell to get root on node hosting pod<br>
+ 
+*note: If you do not have the node-shell command, it can be installed using instructions here: [Node-Shell](https://github.com/kvaps/kubectl-node-shell "Node Shell")<br>
+```
+kubectl get pods -o wide
+kubectl node-shell +nodename+
+```
+or
+```	
+kubectl debug node/(node-name)-vmss000000 -it --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
+```
+```	
+Install sysstat and enable cron job
+apt install sysstat -y
+dpkg-reconfigure sysstat
+Select "yes" on configure screen
+```
+ 
+Get free space of mounted filesystems using df <br>
+```
+df
+```
+Get the TPS with iostat
+```
+iostat
+```
+Get the TPS over 30 seconds with sar 
+```
+sar -d 1
+```
+__Identify the process causing IO pressure:__
 
+htop <br>
+Press "F2" for setup <br>
+Select "Columns" under setup <br>
+Select "IO_RATE" <br>
+Press "F6" for sortby and select IO_RATE <br>
+![k8s htop](./assets/images/htop.png)
+Press "F5" for tree view and find high IO process <br>
+![k8s htop](./assets/images/htop1.png) 
+Press "e" when container process is highlighted <br>
+![k8s htop](./assets/images/htop2.png)
 
-		    
+ 
+__Kill container process and recheck IO:__
+```
+docker ps | grep "diskscenario"
+docker kill +containerID+
+```
+```
+iostat 1
+```
+### OOM killed pods
+	
+__Get Pods and identify CrashLoopBackOff pod__
+```
+kubectl get pods --watch
+``` 
+ 
+__Use node-shell to get root on node hosting pod:__<br>
+*note: If you do not have the node-shell command, it can be installed using instructions here: [Node-Shell](https://github.com/kvaps/kubectl-node-shell "Node Shell")<br>
+```
+kubectl get nodes -o wide
+kubectl node-shell +nodename+
+```
+or
+```
+kubectl debug node/(node-name)-vmss000000 -it --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
+```
+ 
+__From the node root, get out of memory errors from logs:__
+```
+grep -i "out of memory" /var/log/kern.log
+dmesg | grep -i "out of memory"
+```		    
 	
 	
