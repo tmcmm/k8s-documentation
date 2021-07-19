@@ -446,9 +446,9 @@ az aks show -g MyResourceGroup -n MyManagedCluster --query '{outboundIps:[]}' -o
 ```
 __Change LB parameters:__
 ```
-az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-outbound-ports 8000
-az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-outbound-ports 8000
-az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-idle-timeout 5
+az aks update -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-outbound-ports 8000
+az aks update -g MyResourceGroup -n MyManagedCluster --load-balancer-outbound-ports 8000
+az aks update -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-idle-timeout 5
 az aks update -g MyResourceGroup -n MyManagedCluster --load-balancer-idle-timeout 5
 ```
 ![Default port allocation](default_port_allocation.png)
