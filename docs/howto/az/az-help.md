@@ -428,13 +428,14 @@ Imagine having multiple browsers going to https://www.microsoft.com, which is:<b
  
 Without different destination ports for the return traffic (the SNAT port used to establish the connection), the client will have no way to separate one query result from another.<br>
 Outbound connections can burst. A backend instance can be allocated insufficient ports.<br>
-Failed SNAT connections detected. This may lead to slow performance and / or connection related exceptions in the application.<br>
+Failed SNAT may lead to slow performance and / or connection related exceptions in the application.<br>
+https://docs.microsoft.com/en-us/azure/aks/load-balancer-standard#configure-the-allocated-outbound-ports
 
 __Formula:__ <br>
-__(OutboundIps * 6400 > (nodeVMs + one node for upgrade purpose)* desiredAllocatedOutboundPorts)__<br>
+__(OutboundIps * 64000 > (nodeVMs + one node for upgrade purpose)* desiredAllocatedOutboundPorts)__<br>
 Example:<br>
 ```
-24*6400 > (50+1) * desiredAllocatedOutboundPorts
+24*64000 > (50+1) * desiredAllocatedOutboundPorts
 desiredAllocatedOutboundPorts < 30117, but it needs to be multiple of 8 so the max number or ports to allocate is 30112
 ```
 
