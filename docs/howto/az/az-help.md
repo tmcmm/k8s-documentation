@@ -451,7 +451,7 @@ az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-outbound-po
 az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-idle-timeout 5
 az aks update -g MyResourceGroup -n MyManagedCluster --load-balancer-idle-timeout 5
 ```
-![Default port allocation](./assets/images/default_port_allocation.png)
+![Default port allocation](default_port_allocation.png)
 
 ## Curl command
 
