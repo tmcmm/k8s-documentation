@@ -440,8 +440,7 @@ desiredAllocatedOutboundPorts < 30117, but it needs to be multiple of 8 so the m
 
 __Check the load balancer configuration:__<br>
 ```
-az aks show -g MyResourceGroup -n MyManagedCluster --query '{allocatedOutboundPorts:[]}' -o json
-az aks show -g MyResourceGroup -n MyManagedCluster --query '{outboundIps:[]}' -o json
+az aks show --name <Cluster_Name> --resource-group <Resource_Group> --query '{OutboundPorts:networkProfile.loadBalancerProfile.allocatedOutboundPorts, OutboundIps:networkProfile.loadBalancerProfile.managedOutboundIps.count }' -o json
 
 ```
 __Change LB parameters:__
