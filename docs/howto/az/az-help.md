@@ -414,7 +414,45 @@ SAL_ID=$(az network vnet subnet show --resource-group <RESOURCEGROUP> --vnet-nam
 az resource delete --ids $SAL_ID --api-version 2018-07-01
 3. Delete the subnet delegation to Azure Container Instances:
 az network vnet subnet update --resource-group <RESOURCEGROUP> --vnet-name <VNET> --name <SUBNET> --remove delegations 0 <---If this command shows any error
-````
+```
+## SNAT Port cases
+
+#### Exhausting ports
+Every connection to the same destination IP and destination port will use a SNAT port. This connection maintains a distinct traffic flow from the backend instance or client to a server. This process gives the server a distinct port on which to address traffic. Without this process, the client machine is unaware of which flow a packet is part of.<br>
+
+Imagine having multiple browsers going to https://www.microsoft.com, which is:<br>
+
+	• Destination IP = 23.53.254.142
+	• Destination Port = 443
+	• Protocol = TCP
+ 
+Without different destination ports for the return traffic (the SNAT port used to establish the connection), the client will have no way to separate one query result from another.<br>
+Outbound connections can burst. A backend instance can be allocated insufficient ports.<br>
+Failed SNAT connections detected. This may lead to slow performance and / or connection related exceptions in the application.<br>
+
+__Formula:__ <br>
+__(OutboundIps * 6400 > (nodeVMs + one node for upgrade purpose)* desiredAllocatedOutboundPorts)__<br>
+Example:<br>
+```
+24*6400 > (50+1) * desiredAllocatedOutboundPorts
+desiredAllocatedOutboundPorts < 30117, but it needs to be multiple of 8 so the max number or ports to allocate is 30112
+```
+
+__Check the load balancer configuration:__<br>
+```
+az aks show -g MyResourceGroup -n MyManagedCluster --query '{allocatedOutboundPorts:[]}' -o json
+az aks show -g MyResourceGroup -n MyManagedCluster --query '{outboundIps:[]}' -o json
+
+```
+__Change LB parameters:__
+```
+az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-outbound-ports 8000
+az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-outbound-ports 8000
+az aks create -g MyResourceGroup -n MyManagedCluster --load-balancer-managed-outbound-ip-count 2 --load-balancer-idle-timeout 5
+az aks update -g MyResourceGroup -n MyManagedCluster --load-balancer-idle-timeout 5
+```
+![Default port allocation](./assets/images/default_port_allocation.png)
+
 ## Curl command
 
 __curl command:__
