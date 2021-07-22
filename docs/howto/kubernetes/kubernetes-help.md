@@ -247,6 +247,16 @@ __Check the status of the node images:__
 ```
 kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.kubernetes\.azure\.com\/node-image-version}{"\n"}{end}'
 ```
+__Upgrade node image:__
+```
+az aks nodepool show --resource-group myResourceGroup --cluster-name myAKSCluster --name mynodepool --query nodeImageVersion
+az aks nodepool get-upgrades --nodepool-name mynodepool --cluster-name myAKSCluster --resource-group myResourceGroup
+az aks nodepool upgrade --resource-group myResourceGroup --cluster-name myAKSCluster --name mynodepool --node-image-only
+```
+__Upgrade all node pools:__
+```
+az aks upgrade --resource-group myResourceGroup --name myAKSCluster --node-image-only
+```
 __Chek where nodes are deployed according to the Availability Zone:__
 ```
 kubectl get nodes -o custom-columns=NAME:'{.metadata.name}',REGION:'{.metadata.labels.topology\.kubernetes\.io/region}',ZONE:'{metadata.labels.topology\.kubernetes\.io/zone}'
