@@ -348,6 +348,33 @@ __Docker get the size of the overlay mounts used:__
 ```
 sudo docker inspect $(docker ps -qa) |  jq -r 'map([.Name, .GraphDriver.Data.UpperDir]) | .[] | "\(.[0])\t\(.[1])"' | awk -F '/diff' '{print $1}' | awk '{printf $1" "}''{system("sudo du -sh " $2)}' | sort -rhk2
 ```
+## Patching resources
+```
+# Partially update a node
+kubectl patch node k8s-node-1 -p '{"spec":{"unschedulable":true}}'
+
+# Update a container's image; spec.containers[*].name is required because it's a merge key
+kubectl patch pod valid-pod -p '{"spec":{"containers":[{"name":"kubernetes-serve-hostname","image":"new image"}]}}'
+
+# Update a container's image using a json patch with positional arrays
+kubectl patch pod valid-pod --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":"new image"}]'
+
+# Disable a deployment livenessProbe using a json patch with positional arrays
+kubectl patch deployment valid-deployment  --type json   -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}]'
+
+# Add a new element to a positional array
+kubectl patch sa default --type='json' -p='[{"op": "add", "path": "/secrets/1", "value": {"name": "whatever" } }]
+```
+__Get node annotations:__<br>
+```
+kubectl get node xx -o yaml > nodexx.yaml
+Kubectl annotate node xx--overwrite flannel.alpha.coreos.com/public-ip=new-value
+kubectl patch node xx -p '{"metadata":{"annotations":{"flannel.alpha.coreos.com/public-ip":"new-value"}}}'
+```
+### Project Calico - Calico pod keeps restarting after upgrade to AKS 1.20.7 <br>
+[Calico-Github-Issue](https://github.com/projectcalico/calico/issues/4611 "Calico Github Issue")<br>
+![calico bug](./assets/images/calico.png)
+
 ## Secrets:
 
 __decrypt a secret:__
