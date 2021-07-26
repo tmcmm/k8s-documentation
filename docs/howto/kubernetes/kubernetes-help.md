@@ -2312,6 +2312,65 @@ dmesg | grep -i "out of memory"
 [Linux-Performance-Checklist](http://www.brendangregg.com/USEmethod/use-linux.htmlhttp://www.brendangregg.com/USEmethod/use-linux.html "Linux Performance Checklist")<br>
 ![k8s performance](./assets/images/performance.png)
 
+## LinkedAuthorizationFailed Cases -The client has permission to perform action..
 
+
+```
+PublicIPAddress_ID_=$(az network public-ip prefix show --name <> --resource-group <> --subscription <subs> --query id -o tsv)
+az role assignment create --assignee 'ClientID' --scope $PublicIPAddress_ID --role "Network Contributor"
+VNET_ID=$(az network vnet show --resource-group <resource-group> --name <vnet-name> --query id -o tsv)
+az role assignment create --assignee <Client_ID> --scope $VNET_ID --role "Network Contributor"
+```
+## RBAC issues
 	
-	
+[RBAC-Lookup](https://github.com/reactiveops/rbac-lookup "RBAC Lookup")<br>
+In the simplest use case, rbac-lookup will return any matching user, service account, or group along with the roles it has been given.
+```
+kubectl get rolebindings,clusterrolebindings \
+  --all-namespaces  \
+  -o custom-columns='KIND:kind,NAMESPACE:metadata.namespace,NAME:metadata.name,SERVICE_ACCOUNTS:subjects[?(@.kind=="ServiceAccount")].name'
+
+kubectl get rolebinding,clusterrolebinding --all-namespaces -o jsonpath='{range .items[?(@.subjects[0].name=="SERVICE_ACCOUNT_NAME")]}[{.roleRef.kind},{.roleRef.name}]{end}'
+```
+```
+az ad group member add --group 'Group_Name' --member-id 'Member_ID'
+```
+
+A RoleBinding grants permissions within a specific namespace whereas a ClusterRoleBinding grants that access cluster-wide.<br>
+```
+cat <<EOF | kubectl apply -f -
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: dev-user-access
+  namespace: dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dev-user-full-access
+subjects:
+- kind: user
+  namespace: dev
+  name: '<user_id>'
+EOF
+```
+```
+After changing to a cluster role binding everything seems to back to normal and user add the permissions to view the workloads on the portal with:
+cat <<EOF | kubectl apply -f -
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: edit-user-access
+  namespace: dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: User
+  namespace: dev
+  name: '<user_id>'
+EOF
+```
+
+
