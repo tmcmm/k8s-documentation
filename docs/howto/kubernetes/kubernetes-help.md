@@ -525,17 +525,17 @@ Kubectl create clusterrolebinding all-serviceaccounts-admin-temp --clusterrole=c
 
 ### Namespace won't get deleted:
 ```
-Kubectl delete –force –grace-period 0 –ns opa
+Kubectl delete –force –grace-period 0 –ns <namespace_name>
 ```
 If namespace doesn't get delete you can check if the resource as any pending pods:
 
 ```
-kubectl api-resources --verbs=list --namespaced -o name   | xargs -n 1 kubectl get --show-kind --ignore-not-found -n opa
+kubectl api-resources --verbs=list --namespaced -o name   | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace_name>
 ```
 
 Put finalizers string empy:
 ```
-kubectl get namespace opa -o json |jq '.spec = {"finalizers":[]}' > temp.json
+kubectl get namespace <namespace> -o json | jq '.spec = {"finalizers":[]}' > temp.json
 ```
 
 Using curl to send this finalizers string file to the namespace:
@@ -556,6 +556,12 @@ Without bearer token:<br>
 ```
 kubectl get namespaces $NAMESPACE -o json | jq '.spec.finalizers=[]' > /tmp/ns.json
 kubectl proxy & curl -k -H "Content-Type: application/json" -X PUT --data-binary @/tmp/ns.json http://127.0.0.1:8001/api/v1/namespaces/$NAMESPACE/finalize
+```
+!!! note "Note"
+	__Using kube api server Raw all in once__
+```
+ NAMESPACE=<your-namespace>
+    kubectl get namespace $NAMESPACE -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/$NAMESPACE/finalize -f -
 ```
 __Delete things using curl__:
 ```
