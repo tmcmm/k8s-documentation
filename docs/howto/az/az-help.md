@@ -282,6 +282,9 @@ SUBNET_ID=$(az network vnet subnet show --resource-group myResourceGroup --vnet-
 az role assignment create --assignee <appId> --scope $VNET_ID --role "Network Contributor"
 ```
 ### Reset the SP Credentials
+AKS clusters created with a service principal have a one-year expiration time. As you near the expiration date, you can reset the credentials to extend the service principal for an additional period of time. You may also want to update, or rotate, the credentials as part of a defined security policy.<br>
+
+You may also have integrated your AKS cluster with Azure Active Directory, and use it as an authentication provider for your cluster. __In that case you will have 2 more identities created for your cluster, the AAD Server App and the AAD Client App, you may also reset those credentials.__<br>
 
 [azure-aks-sp-reset](https://docs.microsoft.com/en-us/azure/aks/update-credentials#reset-the-existing-service-principal-credential "Reset existing Service Principal Credential")<br>
 
@@ -335,6 +338,19 @@ az aks update-credentials \
 --service-principal $AKS_SP_APP_ID \  
 --client-secret $AKS_SP_SECRET
 ```
+__If you have an AAD cluster:__
+You may create new AAD Server and Client applications by following the AAD integration steps. Or reset your existing AAD Applications following the same method as for service principal reset. After that you just need to update your cluster AAD Application credentials using the same az aks update-credentials command but using the --reset-aad variables.<br>
+[AKS-AAD-Client](https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration-cli#create-azure-ad-client-component "AKS-AAD Create Azure AD client component" )<br>
+```
+az aks update-credentials \
+    --resource-group myResourceGroup \
+    --name myAKSCluster \
+    --reset-aad \
+    --aad-server-app-id <SERVER APPLICATION ID> \
+    --aad-server-app-secret <SERVER APPLICATION SECRET> \
+    --aad-client-app-id <CLIENT APPLICATION ID>
+```
+
 ### Using Azure Portal:
 
 • Using the Azure portal navigate to Azure AD, then "App registrations" and create a new Service Principal.
