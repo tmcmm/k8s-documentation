@@ -2378,5 +2378,23 @@ subjects:
   name: '<user_id>'
 EOF
 ```
-
+__REGEX for password that exludes "\" and "-" character:__
+```
+^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*])(?!.*[-\\\\]).{12,72}$
+```
+__Script for listing all node image version on every nodepool of every cluster:__
+```
+SubID="CHANGE THIS"
+az account set --subscription $SubID
+for i in `az aks list -o table | sed '1,2d' | awk '{print $1,$3}' | sed 's/ /:/g'`
+do
+AKSCluster=`echo $i | cut -d":" -f1`
+ResourceGroup=`echo $i | cut -d":" -f2`
+echo
+echo Scanning Nodepools for AKS Cluster [ $AKSCluster ] with Resource Group [ $ResourceGroup ] located in subscription [ $SubID ]
+echo
+for NodePoolName in `az aks show -n $AKSCluster -g $ResourceGroup --query 'agentPoolProfiles[*].name' -o tsv`; do echo NodePoolName: $NodePoolName; echo Current Node Image : `az aks nodepool show --cluster-name $AKSCluster -g $ResourceGroup --query nodeImageVersion --name $NodePoolName`; echo Latest Node Image : `az aks nodepool get-upgrades --cluster-name $AKSCluster -g $ResourceGroup --query latestNodeImageVersion --nodepool-name $NodePoolName`; echo; done
+echo "---------------------------------------"
+done
+```
 
