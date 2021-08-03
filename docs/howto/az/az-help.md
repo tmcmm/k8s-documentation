@@ -47,7 +47,8 @@ __Upgrade AKS cluster (only control plane):__
 ```
 az aks upgrade --kubernetes-version <1.xx.xx> -n <cluster name> -g <rgname> --control-plane-only
 ```
-__Upgrade the cluster:__[Azure AKS upgrade Homepage](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Azure AKS Upgrade")<br>
+__Upgrade the cluster:__<br>
+[Azure AKS upgrade Homepage](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#upgrade-an-aks-cluster "Azure AKS Upgrade")<br>
 ```
 az aks upgrade --resource-group myResourceGroup --name myAKSCluster --kubernetes-version KUBERNETES_VERSION
 ```
@@ -63,6 +64,29 @@ __Create nodepool with conteinerd:__
 ```
 az aks nodepool add --name <node_pool_name> --cluster-name <cluster_name> --resource-group <resource_group> --aks-custom-headers CustomizedUbuntu=aks-ubuntu,ContainerRuntime=containerd --kubernetes-version=1.16.13
 ```
+__Max surge:__<br>
+[Azure AKS upgrade Node Surge](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade "AKS Node Surge")<br>
+By default, AKS configures upgrades to surge with one additional node. A default value of one for the max surge settings will enable AKS to minimize workload disruption by creating an additional node before the cordon/drain of existing applications to replace an older versioned node.<br>
+
+__The max surge value may be customized per node pool to enable a trade-off between upgrade speed and upgrade disruption__. By increasing the max surge value, the upgrade process completes faster, but setting a large value for max surge may cause disruptions during the upgrade process.<br>
+
+__Important:__ 'The max surge setting on a node pool is permanent. Subsequent Kubernetes upgrades or node version upgrades will use this setting. You may change the max surge value for your node pools at any time. For production node pools, we recommend a max-surge setting of 33%.'
+
+Max surge Performance:<br>
+```
+10 @ 100% : 590896 = 590 seconds, e2eaks-Whu
+10 @50%: 1458949 = 1458 seconds, e2eaks-sBT*, 1220827= 1220 seconds
+10 @ 33 %: 14 28446 = 1428 seconds e2eaks-ScV
+e2eaks-fUu
+10 @ 1: 1620446 = 1620 seconds, e2eaks-bog
+
+20 @ 100%. 809629 = 809 seconds, e2eaks-zLM
+20 @ 50%: 910840 = 910 seconds, e2eaks-eMK
+20 @ 33% 1078995 = 1078 seconds e2eaks-aiv
+20 @ 1 2791845 = 2791 seconds, e2eaks-THY
+```
+
+
 ### Cluster pending in upgrading state:
 Refresh the service principle using the same secret to get the cluster back to succeeded state.<br>
 Retrieve the secret by running this command on any node:<br>
