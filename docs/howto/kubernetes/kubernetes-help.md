@@ -175,6 +175,10 @@ __Get ca -certificate:__
  kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-authority-data}'
 (..)h1Y1NHSEljYS9zcGpxc0ZsZTNnM3NZeWRRTjltUHJDZ0ZzSXQKNVE1S0I1UzYxS0VnTHJnTDNPd2FT(--)
 ```
+__Using vmss az command:__
+```
+az vmss run-command invoke -g MC_(..) -n vmss-name-vmss --instance-id 0 --command-id RunShellScript --query 'value[0].message' -otsv --scripts "openssl x509 -in /etc/kubernetes/certs/apiserver.crt -noout -enddate"
+```
 __Get cluster certificate in cer format:__
 ```
 kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-authority-data}' | base64 -D | openssl x509 -text -out -
@@ -191,8 +195,9 @@ kubectl config view --raw -o jsonpath="{.clusters[?(@.name == 'myAKSCluster')].c
 ```
 __Get Certificate details:__
 ```
-echo | openssl s_client -servername microsoft -connect microsoft.com:443 2>/dev/null | openssl x509 -text
-curl --insecure -vvI https://microsoft.com 2>&1 | awk 'BEGIN { cert=0 } /^\* SSL connection/ { cert=1 } /^\*/ { if (cert) print }'
+echo | openssl s_client -connect FQDN:443 |openssl x509 -inform pem -noout -text
+echo | openssl s_client -servername kubernetes -connect FQDN:443 2>/dev/null | openssl x509 -text
+curl --insecure -vvI https://FQDN:443 2>&1 | awk 'BEGIN { cert=0 } /^\* SSL connection/ { cert=1 } /^\*/ { if (cert) print }'
 ```
 
 __Set a context with a different namespace:__
