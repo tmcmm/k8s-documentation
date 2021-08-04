@@ -2402,4 +2402,83 @@ for NodePoolName in `az aks show -n $AKSCluster -g $ResourceGroup --query 'agent
 echo "---------------------------------------"
 done
 ```
+## Subnet is Full Cases
+	
+You should find an error message such as the below:<br>
 
+```	
+Failed to upgrade cluster: DeploymentName[agent-18-12-19T12.53.41-1969586946] ResourceGroup[MC_tvn1_tvnet_northeurope] TopError[Code="DeploymentFailed" Message="At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-debug for usage details." Details=[{"code":"BadRequest","message":"{\r\n \"error\": {\r\n \"code\": \"SubnetIsFull\",\r\n \"message\": \"Subnet /subscriptions/<>/resourceGroups/vnettest/providers/Microsoft.Network/virtualNetworks/cvnet/subnets/ses-vnet2 with address prefix 10.59.248.128/25 is already full.\",\r\n \"details\": []\r\n }\r\n}"}]] StatusCode[0] Response[] ProvisioningState[] Operations[]
+```
+	
+__Understanding the problem:__
+This problem happens in Advanced Networking cluster because Azure-CNI preallocates an IP address for each Pod in the cluster.<br>
+The amount of IP addresses that are reserved per node depend on the maxPod value specified at cluster creation. You can read more here:<br>
+https://github.com/Azure/azure-container-networking/blob/master/docs/cni.md  https://docs.microsoft.com/en-us/azure/aks/configure-advanced-networking 
+The important part to understand is that __every node will allocate the maximum IP addresses per pod as specified, default is 30.__ <br>
+The above means that for every node created in you AKS cluster we will consume 30 address from the specified subnet.
+See this link for /CIDR host values: https://www.aelius.com/njh/subnet_sheet.html<br>
+!!! note Note
+	Azure reserves five IP addresses per subnet. The first address in the subnet is for network ID, followed by three addresses that are used by Azure internally, and the last address in the subnet is reserved for broadcast packets.
+
+• x.x.x.0: Network address
+• x.x.x.1: Reserved by Azure for the default gateway
+• x.x.x.2, x.x.x.3: Reserved by Azure to map the Azure DNS IPs to the VNet space
+• x.x.x.255: Network broadcast address
+
+__Cluster Size Formula:__
+__(Number of Nodes + 1) + ((Number of Nodes + 1) * Maximum pods per node that you configure)__
+So by looking at your case:<br>
+```
+Number of nodes = 2 
+Max number of pods per node = 100 
+Subnet CIDR = 10.77.17.0/24
+(2+1)+(2+1)*100=303 
+ So, in order to allow the upgrade to proceed successfully, the subnet size should be /23 (512 ip addresses) or larger.
+```
+You can follow this official [CNI Documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#plan-ip-addressing-for-your-cluster "Azure CNI)" on ‘How to plan your IP addressing for your cluster’.
+
+You have two options (Be aware that both will cause some outage of the cluster):<br>
+	• Drain and cordon the nodes -> Delete the node instances -> Scale the node pool to 1 instance -> Upgrade to the same Kubernetes version -> Scale the node pool to 2 nodes as before.<br>
+	• Create a temporary new subnet in the same VNET that the cluster is currently in with the same subnet size /24-> Move one of the nodes -> Upgrade to the same Kubernetes version<br>
+
+Create temporary new subnet:<br>
+```
+RESOURCE_GROUP=Name
+VNET_NAME=Name
+az network vnet subnet create --address-prefixes 10.77.18.0/24 --name temp_subnet --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME
+```
+
+__Long term Mitigation__
+- To prevent this from happening again the customer should ideally make the subnet bigger, so it can accomodate more nodes total, although they should still keep in mind they cannot max out the subnet with nodes and expect an upgrade to succeed.<br>	
+- __For Availability sets__ the process to make the subnet would be the same as above with but the customer would need to move ALL the nodes to the temp subnet as well as any internal Load Balancers to completely free up the subnet.<br>
+- Once the subnet is free, customer can modify the subnet to make it bigger, then they can move the nodes back to the now larger subnet.<br>
+	
+- __For VMSS__ you need to delete the VMSS and remove any internal load balancers to free up the subnet, or alternatively you could create a new larger subnet and then create a new nodepool to use this subnet instead by specifying "--vnet-subnet-id" switch in the add command. ref - https://docs.microsoft.com/en-us/cli/azure/ext/aks-preview/aks/nodepool?view=azure-cli-latest#ext-aks-preview-az-aks-nodepool-add<br>
+```
+RESOURCE_GROUP=Name
+VNET_NAME=Name
+az network vnet subnet create --address-prefixes 10.77.18.0/24 --name temp_subnet --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME
+az aks nodepool add --resource-group myResourceGroup --cluster-name myAKSCluster --name mynodepool --node-count 3 --vnet-subnet-id <YOUR_SUBNET_RESOURCE_ID> --mode system
+```
+
+- Set the new nodepool that is on the new subnet to system, and delete the previous nodepool, ref - https://docs.microsoft.com/en-us/azure/aks/use-system-pools<br>
+```
+az aks nodepool update -g myResourceGroup --cluster-name myAKSCluster -n mynodepool --mode system
+az aks nodepool delete -g myResourceGroup --cluster-name myAKSCluster -n mynodepool
+```
+- After the subnet is made bigger, run a same version upgrade with az aks upgrade which will recreate the VMSS on the subnet.<br>
+```
+az resource update --resource-group <Resource_Group> --name <Cluster_name> --namespace Microsoft.ContainerService --resource-type ManagedClusters
+```
+	
+### AKS pod capacity
+As seen earlier in order for pods from your applications (user pods) to get IP’s assigned in the cluster, those IP’s must be reserved by Azure CNI at the creation of each node and they must not already be assigned to system pods.<br>
+
+Let’s try to determine how many user pods can be created in a 3-node cluster configured with the default max pods per node (30).<br>
+ 
+In AKS 1.17.4 by using the following command ‘>kubectl get pods -A -o wide’ right after the deployment of your AKS cluster, you can observe that there are 16 system pods running (if no add-ons selected) using 5 different IP addresses (some pods such as kube-proxy or azure-ip-masq-agent share the same IP as the nodes they are hosted in, hence the difference).<br>
+ 
+At the end, __3 nodes x 30 max pods per node – 16 system pods = 74 user pods can be created.__<br>
+Keep in mind the existence of Kubernetes system daemonSet resources to understand the spread of the system pods across all the nodes of the cluster.<br>
+
+It does not matter here that there are more IP’s reserved by Azure CNI and available in the cluster 3x30-5=85 since the max pods per node is a hard limit that cannot be exceeded.<br>
