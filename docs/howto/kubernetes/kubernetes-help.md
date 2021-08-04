@@ -2448,7 +2448,8 @@ VNET_NAME=Name
 az network vnet subnet create --address-prefixes 10.77.18.0/24 --name temp_subnet --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME
 ```
 
-__Long term Mitigation__
+__Long term Mitigation__<br>
+	
 - To prevent this from happening again the customer should ideally make the subnet bigger, so it can accomodate more nodes total, although they should still keep in mind they cannot max out the subnet with nodes and expect an upgrade to succeed.<br>
 	
 - __For Availability sets__ the process to make the subnet would be the same as above with but the customer would need to move ALL the nodes to the temp subnet as well as any internal Load Balancers to completely free up the subnet.<br>
