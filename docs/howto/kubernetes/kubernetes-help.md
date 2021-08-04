@@ -639,7 +639,30 @@ __bash script you can use:__
 
 
 ## SSH INTO A NODE
+__Generate key if you don't have one:__
+```
+ssh-keygen -m PEM -t rsa -b 4096 -f ~/.ssh/<new-key-name> -C <username>
+```
+__Distribute the key across the nodes:__
+```
+NODE_RESOURCE_GROUP=$(az aks show --resource-group Resource_Group --name AKS_Cluster --query nodeResourceGroup -o tsv)
+SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query [0].name -o tsv)
 
+settings = "{'username':'azureuser','ssh_key':'$(cat ~/.ssh/id_rsa.pub)'}"
+or 
+jsonfile
+{
+	"username" : "azureuser",
+	"ssh_key" : "REPLACE_THIS_WITH_CONTENT_OF_ID_RSA_PUB_FILE"
+}
+az vmss extension set --resource-group $NODE_RESOURCE_GROUP --vmss-name $SCALE_SET_NAME --name VMAccessForLinux --publisher Microsoft.OSTCExtensions --version 1.4 --protected-settings protected_settings.json or $settings
+az vmss extension set --resource-group $NODE_RESOURCE_GROUP --vmss-name $SCALE_SET_NAME --name VMAccessForLinux --publisher Microsoft.OSTCExtensions --version 1.4 --protected-settings "{\"username\":\"azureuser\", \"ssh_key\":\"$(cat ~/.ssh/id_rsa.pub)\"}"
+az vmss update-instances --instance-ids '*' --name $SCALE_SET_NAME -g $NODE_RESOURCE_GROUP
+```
+__if availability set:__
+```
+ az vm user update --resource-group <resource-group-name> --name <instance-name> --username <username> --ssh-key-value ~/.ssh/<new-key-name>.pub
+```
 [kubectl-node](https://github.com/kvaps/kubectl-node-shell "Node Shell")
 ```
 curl -LO https://github.com/kvaps/kubectl-node-shell/raw/master/kubectl-node_shell
