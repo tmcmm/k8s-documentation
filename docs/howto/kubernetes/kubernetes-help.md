@@ -663,7 +663,23 @@ kubectl get nodes -o wide
 ```
 ```
 kubectl debug node/aks-nodepool1-12345678-vmss000000 -it --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
+kubectl run -it --rm aks-ssh --image=debian
 ```
+__Instal the openssh client:<br>__
+```
+apt-get update && apt-get install openssh-client -y
+
+```
+__On another shell copy your ssh keys that was created on the cluster creation with the --generate-ssh-keys command to the pod:__<br>
+```
+kubectl cp ~/.ssh/id_rsa $(kubectl get pod -l run=aks-ssh -o jsonpath='{.items[0].metadata.name}'):/id_rsa
+kubectl exec aks-ssh -c aks-ssh chmod 0600 id_rsa
+```
+```
+kubectl get nodes -o json | jq .items[].status.addresses[].address
+ssh -i id_rsa username@ipaddress
+```
+
 __other images:__<br>
 ```
 kubectl debug node/aks-nodepool1-12345678-vmss000000 -it --image=busybox
