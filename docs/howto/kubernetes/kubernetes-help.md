@@ -123,6 +123,27 @@ balancer that balances load to the **service** inside the cluster
 
 ![k8s kernel](./assets/images/kubernetes_arm_kernel.png)
 
+## Private Cluster DNS options
+
+- System (the default option): AKS creates a Private DNS Zone in the Node Resource Group; any virtual network that is linked to that Private DNS Zone can resolve the name; the virtual network used by AKS is automatically linked to the Private DNS Zone. <br>
+
+- None: default to public DNS; AKS creates a name for your cluster in a public DNS zone that resolves to the private IP address. <br>
+
+- Custom Private DNS Zone: AKS uses a Private DNS Zone that you or another team has created beforehand; this is mostly used in enterprise scenarios when the Private DNS Zones are integrated with custom DNS servers (e.g., on AD domain controllers, Infoblox, …). <br>
+
+With the custom DNS option, you cannot use any name you like. The Private DNS Zone has to be like: privatelink.<region>.azmk8s.io. For instance, if you deploy your AKS cluster in West Europe, the Private DNS Zone’s name should be privatelink.westeurope.azmk8s.io. There is an option to use a subdomain as well.<br>
+
+When you use the custom DNS option, you also need to use a user-assigned Managed Identity for the AKS control plane. To make the registration of the A record in the Private DNS Zone work, in addition to linking the Private DNS Zone to the virtual network, the managed identity needs the following roles (at least):<br>
+
+- Private DNS Zone Contributor role on the Private DNS Zone <br>
+	
+- Network Contributor role on the virtual network used by AKS
+	
+To deploy a private AKS cluster with a custom Private DNS Zone, you can use the following Azure CLI command which also sets the network plugin to azure (as an example). Private cluster also works with kubenet if you prefer that model.
+```
+az aks create --resource-group RGNAME --name aks-private --network-plugin azure --vnet-subnet-id "resourceId of AKS subnet" --docker-bridge-address 172.17.0.1/16 --dns-service-ip 10.3.0.10 --service-cidr 10.3.0.0/24 --enable-managed-identity --assign-identity "resourceId of user-assigned managed identity" --enable-private-cluster --load-balancer-sku standard --private-dns-zone "resourceId of Private DNS Zone"
+```
+
 ## Azure CNI
 When using Azure CNI, Every pod is assigned a VNET route-able private IP from the subnet. So, Gateway should be able reach the pods directly.<br>
 
