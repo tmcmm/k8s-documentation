@@ -306,6 +306,10 @@ kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-t
 kubectl exec -i --tty <pod_name> -n <namespace> -- /bin/bash
 kubectl exec tunnelfront-(..) -n kube-system -it sh
 ```
+__Execute a pod with postgres client that will try to access an external postgresql database:__
+```
+kubectl run postgresql-postgresql-client --rm --tty -i --restart='Never' --namespace default --image bitnami/postgresql --env="PGPASSWORD=<HERE_YOUR_PASSWORD>" --command -- psql --host <HERE_HOSTNAME=SVC_OR_IP> -U <HERE_USERNAME> 
+```
 __Get pods running on specific node:__
 ```
 kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=aks-usernpool-10999373(..)
