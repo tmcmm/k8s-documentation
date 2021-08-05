@@ -2216,9 +2216,16 @@ nslookup FQDN
 
 ### Load balancer cases
 ```
+az network public-ip list  --query "[?ipAddress=='20.101.2.69'].id" -o json # Check if determined ip exists in the LB frontendip configuration
+az network public-ip list -g MC_(..) --query '{IpAddress:[].ipAddress, Name:[].name}' -o json # Check any public ip on the Node_Resource_Group and its name
+az aks show --name <Cluster_Name> --resource-group <Resource_Group> --query '{OutboundPorts:networkProfile.loadBalancerProfile.allocatedOutboundPorts, OutboundIps:networkProfile.loadBalancerProfile.managedOutboundIps.count }' -o json #Check for the Outboundports number and oubound ips
+az network lb frontend-ip show -g MyResourceGroup --lb-name MyLb -n MyFrontendIp
+az network lb address-pool show --resource-group  --lb-name kubernetes --name kubernetes
+az network lb address-pool address list -g MC_(..) --lb-name kubernetes --pool-name kubernetes	
+```
+```
 az aks update  -g <resource_group> -n <cluster_name> --load-balancer-managed-outbound-ip-count=2
 az aks update  -g <resource_group> -n <cluster_name> --load-balancer-outbound-ports=2048
-az network public-ip list  --query "[?ipAddress=='public_ip_address'].id" -o table
 ```
 ```	
 kubectl get svc -n kube-system
