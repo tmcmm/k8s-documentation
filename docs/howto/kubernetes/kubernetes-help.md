@@ -814,6 +814,38 @@ curl -v telnet://fqdn:443
 tcpdump -ni eth0 -w ethcap-%H.pcap -e -C 200 -G 3600 -K OR tcpdump -s 0 -vvv -w /path/nameofthecapture.cap
 kubectl cp tmp-shell:/podnode.pcap .
 ```
+Check pod DNS policy:
+![pods dns policy](./assets/images/dns_policy.png)
+__Configure Custom DNS on core dns:__
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  test.override: |
+    hosts { 
+        192.168.0.19 example1.contoso.com
+        10.0.0.2 example2.org
+        10.0.0.3 example3.org
+        fallthrough
+    }
+  test.server: | # you may select any name here, but it must end with the .server file extension
+    contoso.com:53 {
+        errors
+        cache 30
+        forward . 172.16.0.4
+    }
+    fabrikam.com:53 {
+        errors
+        cache 30
+        forward . 172.16.0.4
+    }
+```
+Add forwarder in windows based dns servers:
+![windows dns](./assets/images/windows_dns.png)
+
 
 ### Using tshark inside the node
 ```
