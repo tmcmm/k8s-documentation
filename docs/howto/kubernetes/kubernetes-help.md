@@ -750,15 +750,22 @@ chmod 0400 id_rsa
 ssh -i id_rsa azureuser@<ip_of_windows_node>
 ```
 ## Network troubleshooting
-### DNS TROUBLESHOOTING:
+### DNS TROUBLESHOOTING:<br>
+[Kubernetes DNS resolution](https://v1-17.docs.kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/ "DNS Resolution")<br>
+[Kubernetes DNS custom](https://docs.microsoft.com/en-us/azure/aks/coredns-custom "DNS Custom configuration")<br>
+
 __From cluster:__<br>
 ```
-kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
+kubectl get pods --namespace=kube-system -l k8s-app=kube-dns # Check if the DNS pod is running
+for p in $(kubectl get pods --namespace=kube-system -l k8s-app=kube-dns -o name); do kubectl logs --namespace=kube-system $p; done # Check for Errors in the DNS pod
 kubectl logs --namespace=kube-system -l k8s-app=kube-dns
 kubectl get configmaps --namespace=kube-system coredns-custom -o yaml
+kubectl get configmaps --namespace=kube-system coredns -o yaml
+kubectl delete pods -n kube-system -l k8s-app=kube-dns # Restart DNS configuration
+kubectl get ep kube-dns --namespace=kube-system # Get dns endpoints
 ```
 We need to log on one of the cluster nodes:<br>
-If using windows bastion:<br>
+Check if custom DNS IP addresses are set in place on nodes __/etc/resolv.conf__, case not, We need to reboot the node's VMs to get it updated
 Check dns from the windows bastion:<br>
 ```
 tnc fqdn -port 443
@@ -773,6 +780,7 @@ apt-get update && apt-get install curl -y
 __The command below verifies that a proper record is returned by the DNS server(s) in /etc/resolv.conf:__<br>
 ```
 nslookup microsoft.com
+nslookup or dig @ip_of_dns_server domain
 nc -vz fqdn 443
 curl -vso /dev/null https://fqdn
 curl -vso /dev/null https://fqdn-ip
@@ -797,16 +805,10 @@ __inside pod:__
 cat /etc/resolv.conf
 nameserver 10.245.64.10 search default.svc.cluster.local svc.cluster.local cluster.local
 curl -v telnet://fqdn:443
-tcpdump -s 0 -vvv -w podnode.cap
+tcpdump -ni eth0 -w ethcap-%H.pcap -e -C 200 -G 3600 -K OR tcpdump -s 0 -vvv -w /path/nameofthecapture.cap
 kubectl cp tmp-shell:/podnode.pcap .
 ```
-__from pod trying to reach the service:__
-```
-curl -v https://servicefqdn.com:443
-tcpdump -ni eth0 -w ethcap-%H.pcap -e -C 200 -G 3600 -K OR tcpdump -s 0 -vvv -w /path/nameofthecapture.cap
-scp -i id_rsa azureuser@10.240.0.4:/home/azureuser/ethcap-17.pcap /
-kubectl cp aks-ssh:/ethcap-17.pcap /home/user/ethcap-17.pcap
-```
+
 ### Using tshark inside the node
 ```
 sudo apt update
