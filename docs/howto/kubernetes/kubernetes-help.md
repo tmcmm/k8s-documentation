@@ -751,6 +751,7 @@ ssh -i id_rsa azureuser@<ip_of_windows_node>
 ```
 ## Network troubleshooting
 ### DNS TROUBLESHOOTING:<br>
+
 [Kubernetes DNS resolution](https://v1-17.docs.kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/ "DNS Resolution")<br>
 [Kubernetes DNS custom](https://docs.microsoft.com/en-us/azure/aks/coredns-custom "DNS Custom configuration")<br>
 
@@ -765,7 +766,10 @@ kubectl delete pods -n kube-system -l k8s-app=kube-dns # Restart DNS configurati
 kubectl get ep kube-dns --namespace=kube-system # Get dns endpoints
 ```
 We need to log on one of the cluster nodes:<br>
-Check if custom DNS IP addresses are set in place on nodes __/etc/resolv.conf__, case not, We need to reboot the node's VMs to get it updated
+Check if custom DNS IP addresses are set in place on nodes __/etc/resolv.conf__, case not, We need to do a dhcp release/renew inside the node
+```
+sudo dhclient -r; sudo dhclient
+```
 Check dns from the windows bastion:<br>
 ```
 tnc fqdn -port 443
@@ -801,6 +805,8 @@ kubectl get svc -n kube-system
 service/kube-dns                         ClusterIP   10.245.64.10    <none>        53/UDP,53/TCP   23d       k8s-app=kube-dns
 ```
 __inside pod:__
+!!!note Note
+	10.0.0.10 is by default the ip address of kube-dns service, 10.0.0.10 will forward the query to whatever the dns server in /etc/resolv.conf on the node
 ```
 cat /etc/resolv.conf
 nameserver 10.245.64.10 search default.svc.cluster.local svc.cluster.local cluster.local
