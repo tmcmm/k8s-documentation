@@ -2513,6 +2513,24 @@ for NodePoolName in `az aks show -n $AKSCluster -g $ResourceGroup --query 'agent
 echo "---------------------------------------"
 done
 ```
+__Script for testing requests made to API Server:__
+```
+for i in {1..500}
+do
+   echo $i
+   date
+   kubectl -n test get pods
+   sleep 1
+   code=$?
+   if [[ $code -ne "0" ]]; then
+      C_COUNT=$[P_COUNT + 1]
+      P_COUNT=$COUNT
+      Failure_time=$(date)
+      echo "Failure Time"
+      echo $Failure_time
+   fi
+done
+```
 ## Subnet is Full Cases
 	
 You should find an error message such as the below:<br>
