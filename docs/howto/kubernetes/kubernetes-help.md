@@ -846,7 +846,8 @@ data:
 Add forwarder in windows based dns servers:
 ![windows dns](./assets/images/windows_dns.png)
 
-
+![node dns restart](./assets/images/change_dns.png)
+	
 ### Using tshark inside the node
 ```
 sudo apt update
